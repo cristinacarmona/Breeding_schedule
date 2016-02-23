@@ -26,7 +26,7 @@
 #12/02/2016 10th log: finished, however matching mol_sex from captures is missing...,/ added
 #--------------------------------------------------------------
 #TUZLA
-#23/02/2016 1st log
+#23/02/2016 1st log: Tuzla names are wrong...
 
 
 #--------------------------------------------------------------
