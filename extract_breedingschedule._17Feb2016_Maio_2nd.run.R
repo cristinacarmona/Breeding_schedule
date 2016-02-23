@@ -51,69 +51,77 @@ ls()
 
 working.list <- import.list
 #Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
-#Maio
-names(working.list) <- c("br","bf","cap","ne","re","sex","surv")
-
+#Maionames(working.list) <- c("br","bf","cap","ne","re","sex","surv")
+#Tuzla
+names(working.list) <- c("br","bf","cap","ne","re")
 
 attach(working.list)
 #detach(working.list)
 #---------------------------------------------------------------
 #Prepare resightings and surveys MAIO:
-library(gtools)
-re$type <- "resightings"
-surv$type <- "survey"
-
-names(re)
-names(surv) <- c("year","date","time","code","sex","site","easting",
-                 "northing","distance","degree","habitat" ,"observer","comments","observers","type")
-
-
-all.re<-smartbind(re, surv)
-names(all.re)
-head(all.re[all.re$type %in% "survey",])
+# library(gtools)
+# re$type <- "resightings"
+# surv$type <- "survey"
+# 
+# names(re)
+# names(surv) <- c("year","date","time","code","sex","site","easting",
+#                  "northing","distance","degree","habitat" ,"observer","comments","observers","type")
+# 
+# 
+# all.re<-smartbind(re, surv)
+# names(all.re)
+# head(all.re[all.re$type %in% "survey",])
 #---------------------------------------------------------------
 
 se <- function(a) sd(a[!is.na(a)])/sqrt(length(a[!is.na(a)]))
 names(br)
 str(br)#CEUTA:652 obs, after corrections 653, new BirdSoc file Clemens 2013 - 683 obs
         #MAIO: 1006 obs
+        #Tuzla: 1154 obs
 names(bf)
 str(bf)#CEUTA:3238 obs, 3310 obs new file 
         #MAIO: 3006 obs
+        #Tuzla: 2421 obs
 names(cap)
 str(cap)#CEUTA:2375, 2460 obs new file (up to 2013); new Luke's file: 2375
           #MAIO: 1935 obs
+          #Tuzla: 3842 obs
 #str(cap[!is.na(cap$comments_stdfile) & cap$comments_stdfile =="duplicate",])
       #MAIO: 86 duplicates
 names(sex)
 names(ne)
 str(ne)#CEUTA:659, 690 obs new file (up to 2013); new Luke's file: 659
         #MAIO: 699 obs
+        #Tuzla: 1553 obs
 names(re)
 str(re)#CEUTA:4148, 4165 obs new file; new Luke's file: 4302
         #MAIO: 5026 obs
+        #Tuzla: 4332
 
 library(stringr)
 
 #--------------------------------------------------------
 #Prepare data set:
 #0. Omit lost ring and get rid of FALSE for Female in br: #MAIO
-cap <- cap[!is.na(cap$code),]
-str(br)
-br$field_sex_f <- as.character(br$field_sex_f)
-br$field_sex_f <- str_replace(br$field_sex_f, pattern="FALSE", "F")
+# cap <- cap[!is.na(cap$code),]
+# str(br)
+# br$field_sex_f <- as.character(br$field_sex_f)
+# br$field_sex_f <- str_replace(br$field_sex_f, pattern="FALSE", "F")
 
 #1. List of duplicates-----------------------
 #a.0) correct codes in with different structure: e.g. WX.BX|BX.YM_802109760
 unique(cap[nchar(cap$code)>11, "code"])
 
         #Check general format in captures and resightings:
+#ALL
 regexp1 <- "([RGLBYOWXMSsP]{2})\\.([RGLBYOWXMSsP]{2})\\|([RGLBYOWXMSsP]{2})\\.([RGLBYOWXMSsP]{2})$"
+#Tuzla (in Tuzla g is used instead of L)
+regexp1 <- "([RGLBYOWXMSsPg]{2})\\.([RGLBYOWXMSsgP]{2})\\|([RGLBYOWXMSsgP]{2})\\.([RGLBYOWXMSsgP]{2})$"
 ind<-grep(pattern=regexp1, cap$code)
 ind2<-grep(pattern=regexp1, re$code)
 
 cap[-ind,c("year","site","nest","code")]
-# NEW LUkes file:
+# Ceuta NEW LUkes file:
 #year site nest                  code
 # 35   2006    B    5          XX.WB|XX.RWM
 # 44   2006    B    1          XX.WX|XX.WMY
