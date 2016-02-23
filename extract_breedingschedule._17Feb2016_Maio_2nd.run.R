@@ -25,10 +25,21 @@
 #11/02/2016 9th log: up to line 1264, solved consecutive observations, however chicks section must change given the brood swapping in Ceuta
 #12/02/2016 10th log: finished, however matching mol_sex from captures is missing...,/ added
 #--------------------------------------------------------------
-setwd("F:/Plovers/3rd Chapter/input/Maio/Maio 2007-2015")
+#TUZLA
+#23/02/2016 1st log
+
+
+#--------------------------------------------------------------
+
+#Maio
+#setwd("F:/Plovers/3rd Chapter/input/Maio/Maio 2007-2015")
+#Ceuta
 #setwd("F:/Plovers/3rd Chapter/input/Ceuta")
 #new files path Ceuta:
 #setwd("F:/Plovers/3rd Chapter/input/Ceuta/Newnames Clemens2013_CCI")
+#Tuzla
+setwd("F:/Plovers/3rd Chapter/input/Tuzla")
+
 csvfiles <- list.files(path = ".", pattern='*\\.csv$', all.files=TRUE)
 csvfiles
 
