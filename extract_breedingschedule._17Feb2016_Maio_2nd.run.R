@@ -26,11 +26,15 @@
 #12/02/2016 10th log: finished, however matching mol_sex from captures is missing...,/ added
 #--------------------------------------------------------------
 #TUZLA
-#23/02/2016 1st log
+#23/02/2016 1st log - Cancelled for the moment
 
 
 #--------------------------------------------------------------
+#MADAGASCAR
+#15/03/2016 1st log - Start running and clearing mistakes
 
+
+#---------------------------------------------------------------
 #Maio
 #setwd("F:/Plovers/3rd Chapter/input/Maio/Maio 2007-2015")
 #Ceuta
