@@ -1,4 +1,5 @@
 #Start developing code for Breeding schedules 03/08/2015
+#Author: Cristina Carmona-Isunza
 #Datasets need to have std file column names and have clean colour combinations at least
 
 #MAIO ---1st Run----
@@ -42,10 +43,13 @@
 #new files path Ceuta:
 #setwd("F:/Plovers/3rd Chapter/input/Ceuta/Newnames Clemens2013_CCI")
 #Tuzla
-setwd("F:/Plovers/3rd Chapter/input/Tuzla")
+# setwd("F:/Plovers/3rd Chapter/input/Tuzla")
+#Madagascar
+setwd("F:/Plovers/3rd Chapter/input/Madagascar")
 
 csvfiles <- list.files(path = ".", pattern='*\\.csv$', all.files=TRUE)
 csvfiles
+
 
 import.list <- lapply(csvfiles, read.csv, header = TRUE, as.is=TRUE, na.strings=c("NA"," ",""))
 
@@ -56,11 +60,12 @@ ls()
 working.list <- import.list
 #Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
 #Maio
-names(working.list) <- c("br","bf","cap","ne","re","sex","surv")
+names(working.list) <- c("bf","br","cap","sex","sex2","ne","re")
 
 
 attach(working.list)
 #detach(working.list)
+
 #---------------------------------------------------------------
 #Prepare resightings and surveys MAIO:
 library(gtools)
