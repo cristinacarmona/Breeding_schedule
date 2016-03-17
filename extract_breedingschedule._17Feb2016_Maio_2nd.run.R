@@ -464,8 +464,16 @@ ids[ind,]
 
 for(i in 1:length(ids$year)){ #if code is under ring...put it in code
 #  if(nchar(ids$ring[i])>9) #Ceuta and Maio
-  if(nchar(ids$ring[i])>7) #Mad
+  if(nchar(ids$ring[i])>7) #Mad...however some codes have exactly 7 char as metal rings...W.X|M.X so it creates errors
   ids$code[i] <- ids$ring[i]
+}
+
+for(i in 1:length(ids$year)){
+  pat <- "\\|"
+  if(length(grep(ids$ring[i], pattern=pat))>0){
+    ids$code[i] <- ids$ring[i]
+    ids$ring[i] <- NA
+  }  
 }
 
 
@@ -479,6 +487,20 @@ for(i in 1:length(ids$year)){ #if code is empty, search ring in capt and fill it
 #   if(nchar(ids$ring[i])>9)
 #     ids$ring[i] <- cap.1$ring[match(ids$code[i], cap.1$code)]
 # }
+
+#exclude duplicates from captures for next for loop:
+cap.nodupl<-cap.1[!cap.1$ring %in% omit1,]
+
+for(i in 1:length(ids$year)){ #modification for MAD, search for rings of individuals with code but no ring
+  if(is.na(ids$ring[i]) & !is.na(ids$code[i]))
+    ids$ring[i] <- cap.nodupl$ring[match(ids$code[i], cap.nodupl$code)]
+}
+
+#----develop/debug last for loop for Mad:
+cap.nodupl[cap.nodupl$code %in% "B.W|Y.M",]
+ids[ids$code %in% "B.W|Y.M",]
+
+#---------------------------------------------
 
 # for(i in 1:length(ids$year)){#if adult has no metal ring, use code instead of ring#NOT IN MAD
 #   if(nchar(ids$ring[i])>9 | is.na(ids$ring[i]))
@@ -661,7 +683,8 @@ ids.final[ids.final$year.cr<ids.final$year.mr,]#CEUTA None ,/, colour rings shou
                                               #MAIO None
                                               #MAD none
 
-ids.final[is.na(ids.final$year.cr),] #CEUTA: none, Maio: none, MAD: individuals without metal appear heres without year cr was added....change code.ring
+ids.final[is.na(ids.final$year.cr),] #CEUTA: none, Maio: none, MAD: individuals without metal appear here without year cr was added....change code.ring
+ids.final[is.na(ids.final$year.cr),c("ring")]
 ids.final[ids.final$code == ids.final$ring,]
 
 ids.final[is.na(ids.final$year.mr),] #Ceuta: 1 (BX.WX|BX.OX); MAIO: none
@@ -744,14 +767,25 @@ tail(cap.1, n=300)
 
 #prepare resightings file:
 re$date
+min(cap$date)
+max(cap$date)
 re[is.na(re$date),]
-re[re$date<900,c("observer","year","date")] #there are resightings 
+#re[re$date<900,c("observer","year","date")] #Check Maio: there are resightings
+re[re$date<400,c("observer","year","date")] # Check Mad
+re[re$date>600,c("observer","year","date")]
 
-#MAIO: in non-breeding seasons of 2009 and 2008, restrict dataset:
-re2<-re[re$date>=800,]
+# #MAIO: in non-breeding seasons of 2009 and 2008, restrict dataset:
+# re2<-re[re$date>=800,]
+# re<-re2
+
+#MAD: restrict resightings for length of fieldwork season: 300-605
+re2<-re[re$date>=300 & re$date<=605,]
+min(re2$date)
+max(re2$date)  
+
 re<-re2
 
-
+#--------
 re$real.date <- as.Date(ISOdate(re$year,re$date%/%100,re$date%%100), "%Y/%m/%d", tz="GMT")
 re[is.na(re$real.date),] 
 names(re)
@@ -851,6 +885,8 @@ ids.final$last.cap.r <- as.Date(ids.final$last.cap)
 str(ids.final[ids.final$first.cap!=ids.final$last.cap,])
   #74 adults were captured more than once in a year MAIO
   #397 adults were captured more than once CEUTA
+  #106 adults in MAd
+
 head(ids.final[ids.final$first.cap!=ids.final$last.cap,])
 #---------------------
 
@@ -861,20 +897,32 @@ head(ids.final[ids.final$first.cap!=ids.final$last.cap,])
 
 names(ne)
 names(ids.final)
+head(ids.final)
+#ne$nest.id <- paste(ne$year, ne$site, ne$nest, sep="-") #Ceuta and Maio
 
-ne$nest.id <- paste(ne$year, ne$site, ne$nest, sep="-")
+#re-label species in Nests to create nest.id
+table(ne$species)
+ne[ne$species %in% "KIP","species"] <- "KiP"
+ne[ne$species %in% "WFP","species"] <- "WfP"
 
+ne$nest.id <- paste(ne$year, ne$species, ne$nest, sep="-")#Mad
+
+#Check fate categories for nests
+table(ne$fate)
+ne[ne$fate %in% "Hatch","fate"] <- "HATCH"
+
+#-------match ld, fd, end_date, etc
 for(i in 1:length(ids.final$year)){ 
-  ids.final$laying_date[i] <- ne$laying_date[match(ids.final$nest.id[i], ne$nest.id)]
-  ids.final$found_date[i] <- ne$found_date[match(ids.final$nest.id[i], ne$nest.id)]
-  ids.final$end_date[i] <- ne$end_date[match(ids.final$nest.id[i], ne$nest.id)]
-  ids.final$fate[i] <- ne$fate[match(ids.final$nest.id[i], ne$nest.id)]
-  ids.final$northing[i] <- ne$northing[match(ids.final$nest.id[i], ne$nest.id)]
-  ids.final$easting[i] <- ne$easting[match(ids.final$nest.id[i], ne$nest.id)]
+  ids.final$laying_date[i] <- as.numeric(ne$laying_date[match(ids.final$nest.id[i], ne$nest.id)])
+  ids.final$found_date[i] <- as.numeric(ne$found_date[match(ids.final$nest.id[i], ne$nest.id)])
+  ids.final$end_date[i] <- as.numeric(ne$end_date[match(ids.final$nest.id[i], ne$nest.id)])
+  ids.final$fate[i] <- as.numeric(ne$fate[match(ids.final$nest.id[i], ne$nest.id)])
+  ids.final$northing[i] <- as.numeric(ne$northing[match(ids.final$nest.id[i], ne$nest.id)])
+  ids.final$easting[i] <- as.numeric(ne$easting[match(ids.final$nest.id[i], ne$nest.id)])
   #ids.final$latitude[i] <- ne$Latitude[match(ids.final$nest.id[i], ne$nest.id)]
   #ids.final$longitude[i] <- ne$Longitude[match(ids.final$nest.id[i], ne$nest.id)]
-  ids.final$no_chicks[i] <- ne$no_chicks[match(ids.final$nest.id[i], ne$nest.id)]
-  ids.final$clutch_size[i] <- ne$clutch_size[match(ids.final$nest.id[i], ne$nest.id)]  
+  ids.final$no_chicks[i] <- as.numeric(ne$no_chicks[match(ids.final$nest.id[i], ne$nest.id)])
+  ids.final$clutch_size[i] <- as.numeric(ne$clutch_size[match(ids.final$nest.id[i], ne$nest.id)])  
 }
 
 #-----debug------
@@ -883,6 +931,9 @@ head(ids.final[!is.na(ids.final$clutch_size),])
 
 #---------------------
 #convert dates to real dates
+ids.final$laying_date<-as.numeric(ids.final$laying_date)
+ids.final$found_date <- as.numeric(ids.final$found_date)
+ids.final$end_date <- as.numeric(ids.final$end_date)
 
 ids.final$laying_date.r <- as.Date(ISOdate(ids.final$year,ids.final$laying_date%/%100,ids.final$laying_date%%100), "%Y/%m/%d", tz="GMT")
 ids.final$found_date.r <- as.Date(ISOdate(ids.final$year,ids.final$found_date%/%100,ids.final$found_date%%100), "%Y/%m/%d", tz="GMT")
@@ -900,14 +951,15 @@ head(ids.final[!is.na(ids.final$clutch_size),])
 
 #         iv. Broodfates (earliest and latest dates when male or female was seen)
 names(bf)
-bf$nest.id <- paste(bf$year, bf$site, bf$brood, sep="-")
+#bf$nest.id <- paste(bf$year, bf$site, bf$brood, sep="-") #MAIO CEUTA
+bf$nest.id <- paste(bf$year, bf$species, bf$brood, sep="-") #MAD
 #------------------------------
 #NEW SECTION ADDED after Maio's 2nd run
 bf$date <- as.numeric(bf$date)
 bf$real.date <- as.Date(ISOdate(bf$year,bf$date%/%100,bf$date%%100), "%Y/%m/%d", tz="GMT")
 
               #check nest format
-    table(bf$site)
+    #table(bf$site)
 #     bf[bf$site %in% "Salina","site"]<- "S"
 #     bf[bf$site %in% "MORRO","site"]<-"M"
     
@@ -918,35 +970,38 @@ bf$real.date <- as.Date(ISOdate(bf$year,bf$date%/%100,bf$date%%100), "%Y/%m/%d",
 #     bf$brood <- gsub("M", "", bf$brood)
 #------------------------------              
             #check parents categories (4- both, 3-only male, 2-only female)          
-              table(bf$parents)
+              #table(bf$parents)
 #Maio
-              bf[bf$parents %in% "2 OR 4",]
-              bf[c(206,136),]
-              bf[bf$parents=="2 OR 3",]
-              bf[bf$parents=="F",]
-              bf[bf$parents %in% "4?",]
-              bf[bf$parents %in% "?",] 
-              bf[bf$parents %in% "#N/A",] 
-              bf[bf$parents %in% "-1",]
+#               bf[bf$parents %in% "2 OR 4",]
+#               bf[c(206,136),]
+#               bf[bf$parents=="2 OR 3",]
+#               bf[bf$parents=="F",]
+#               bf[bf$parents %in% "4?",]
+#               bf[bf$parents %in% "?",] 
+#               bf[bf$parents %in% "#N/A",] 
+#               bf[bf$parents %in% "-1",]
 #changes to Maio:             
-              bf$parents[bf$parents=="no parent"] <- 0
-              bf$parents[bf$parents=="?"] <- NA 
-              bf$parents[bf$parents=="#N/A"] <- NA
-              bf$parents[bf$parents =="F"] <- 2
-              bf$parents[bf$parents == "4?"] <- NA 
-              bf$parents[bf$parents =="-1"] <- NA
-              bf$parents[bf$parents == "2 or 3"] <- NA
-              bf$parents[bf$parents == "2 OR 3"] <- NA
-              bf$parents[bf$parents == "2 OR 4"] <- NA
-              bf$parents[bf$parents == "3?"] <- NA
+#               bf$parents[bf$parents=="no parent"] <- 0
+#               bf$parents[bf$parents=="?"] <- NA 
+#               bf$parents[bf$parents=="#N/A"] <- NA
+#               bf$parents[bf$parents =="F"] <- 2
+#               bf$parents[bf$parents == "4?"] <- NA 
+#               bf$parents[bf$parents =="-1"] <- NA
+#               bf$parents[bf$parents == "2 or 3"] <- NA
+#               bf$parents[bf$parents == "2 OR 3"] <- NA
+#               bf$parents[bf$parents == "2 OR 4"] <- NA
+#               bf$parents[bf$parents == "3?"] <- NA
 #
 #Ceuta
 #               bf$parents[bf$parents %in% "?"] <- NA
 #               bf$parents[bf$parents=="2+"] <- 2
 #               bf$parents[bf$parents=="3+"] <- 3
 #               bf$parents[is.na(bf$parents)]
-              table(bf$parents)
+              #table(bf$parents)
 
+#Madagascar
+table(bf$parent1)
+table(bf$parent2)
 
 #--------debug----------
 # ids.final$mol_sex <- as.character(ids.final$mol_sex)
