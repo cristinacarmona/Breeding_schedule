@@ -32,7 +32,9 @@
 
 #--------------------------------------------------------------
 #MADAGASCAR
-#15/03/2016 1st log - Start running and clearing mistakes
+#15/03/2016 1st log - Start running and clearing mistakes, produced Resightings std file for MAD using cleaning code.
+#16/03/2016 2nd log - Up to line 663 found some errors in BRef....need correction
+#17/03/2016 3rd log - Continue from 663, clear errors found in BirdRef,
 
 
 #---------------------------------------------------------------
@@ -60,7 +62,7 @@ ls()
 working.list <- import.list
 #Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
 #Maio
-names(working.list) <- c("bf","br","cap","sex","sex2","ne","re")
+names(working.list) <- c("bf","br","cap","sex","sex2","ne","re2","re")
 
 
 attach(working.list)
@@ -68,62 +70,71 @@ attach(working.list)
 
 #---------------------------------------------------------------
 #Prepare resightings and surveys MAIO:
-library(gtools)
-re$type <- "resightings"
-surv$type <- "survey"
-
-names(re)
-names(surv) <- c("year","date","time","code","sex","site","easting",
-                 "northing","distance","degree","habitat" ,"observer","comments","observers","type")
-
-
-all.re<-smartbind(re, surv)
-names(all.re)
-head(all.re[all.re$type %in% "survey",])
+# library(gtools)
+# re$type <- "resightings"
+# surv$type <- "survey"
+# 
+# names(re)
+# names(surv) <- c("year","date","time","code","sex","site","easting",
+#                  "northing","distance","degree","habitat" ,"observer","comments","observers","type")
+# 
+# 
+# all.re<-smartbind(re, surv)
+# names(all.re)
+# head(all.re[all.re$type %in% "survey",])
 #---------------------------------------------------------------
 
 se <- function(a) sd(a[!is.na(a)])/sqrt(length(a[!is.na(a)]))
 names(br)
+
 str(br)#CEUTA:652 obs, after corrections 653, new BirdSoc file Clemens 2013 - 683 obs
         #MAIO: 1006 obs
+        #MAD: 2416
 names(bf)
 str(bf)#CEUTA:3238 obs, 3310 obs new file 
         #MAIO: 3006 obs
+        #MAD:1499
 names(cap)
 str(cap)#CEUTA:2375, 2460 obs new file (up to 2013); new Luke's file: 2375
           #MAIO: 1935 obs
+          #MAD: 5372
 #str(cap[!is.na(cap$comments_stdfile) & cap$comments_stdfile =="duplicate",])
       #MAIO: 86 duplicates
 names(sex)
 names(ne)
 str(ne)#CEUTA:659, 690 obs new file (up to 2013); new Luke's file: 659
         #MAIO: 699 obs
+        #MAD: 2762
 names(re)
 str(re)#CEUTA:4148, 4165 obs new file; new Luke's file: 4302
         #MAIO: 5026 obs
+        #MAD: 6772
 
 library(stringr)
 
 #--------------------------------------------------------
 #Prepare data set:
 #0. Omit lost ring and get rid of FALSE for Female in br: #MAIO
-cap <- cap[!is.na(cap$code),]
-str(br)
-br$field_sex_f <- as.character(br$field_sex_f)
-br$field_sex_f <- str_replace(br$field_sex_f, pattern="FALSE", "F")
+# cap <- cap[!is.na(cap$code),]
+# str(br)
+# br$field_sex_f <- as.character(br$field_sex_f)
+# br$field_sex_f <- str_replace(br$field_sex_f, pattern="FALSE", "F")
 
 #1. List of duplicates-----------------------
 #a.0) correct codes in with different structure: e.g. WX.BX|BX.YM_802109760
-unique(cap[nchar(cap$code)>11, "code"])
+#unique(cap[nchar(cap$code)>11, "code"]) #nchar should be 7 in MAD: W.B|B.M
+unique(cap[nchar(cap$code)!=7, "code"]) #112 in Mad, no corrections can be made
 
         #Check general format in captures and resightings:
-regexp1 <- "([RGLBYOWXMSsP]{2})\\.([RGLBYOWXMSsP]{2})\\|([RGLBYOWXMSsP]{2})\\.([RGLBYOWXMSsP]{2})$"
+#regexp1 <- "([RGLBYOWXMSsP]{2})\\.([RGLBYOWXMSsP]{2})\\|([RGLBYOWXMSsP]{2})\\.([RGLBYOWXMSsP]{2})$"
+regexp1 <- "([RGLBYOWXMSsP]{1,2})\\.([RGLBYOWXMSsP]{1,2})\\|([RGLBYOWXMSsP]{1,2})\\.([RGLBYOWXMSsP]{1,2})$"
+
 ind<-grep(pattern=regexp1, cap$code)
 ind2<-grep(pattern=regexp1, re$code)
 
-cap[-ind,c("year","site","nest","code")]
-# NEW LUkes file:
-#year site nest                  code
+str(cap[-ind,c("year","site","nest","code")]) 
+# NEW LUkes file, Ceuta:
+        #year site nest                  code
 # 35   2006    B    5          XX.WB|XX.RWM
 # 44   2006    B    1          XX.WX|XX.WMY
 # 59   2006    C   11          XX.YR|XX.WWM
@@ -134,32 +145,47 @@ cap[-ind,c("year","site","nest","code")]
 # 580  2007    A  202          XX.YR|XX.WWM
 # 1106 2008    A    1          XX.YR|XX.WWM
 
-cap[-ind,c("code")]
-#Previous file to Luke's:
+
+cap[-ind,c("code")] #Mad: 240 with wierd codes...and several NAs which belong to Juveniles?
+#Previous file to Luke's (CEUTA):
 # [1] "BX.WX|SX."    "XX.WB|XX.RWM" "XX.WX|XX.WMY"
 # [4] "XX.YR|XX.WWM" "XX.WB|XX.RWM" "BX.WX|SX."   
 # [7] "XX.YR|XX.WWM" "BX.WX|SX."    "XX.YR|XX.WWM"
 # [10] "BX.WX|SX."    "XX.YR|XX.WWM" NA            
 # [13] NA             "YX.MX|WX." 
 
-re[-ind2,"code"]
+#Mad codes in captures with wrong format (excluding NAs):
+# "B.O|.G"   "V.X|M.X"   "W.R|M.R?"  "X.X|X.G4"  "X.X|X.L7"  "X.X|X.G2" 
+# "X.X|X.L5"  "X.X|X.L2"  "X.X|X.L1"  "X.X|X.G1"  "X.X|X.L3"  "W.K|O.M"   "L.Y|M.K"   "B.K|M.Y"   "Y.K|Y.M"   "G.M|G.K"  
+# "L.K|M.L"   "Y.M|Y.K"   "B.K|M.B"   "Y.M|Y.K"   "B.M|B.K"   "B.M|B.K"   "R.M|R.K"   "L.M|L.K"   "O.M|O.K"   "Y.M|Y.K"  
+# "W.M|W.K"   "B.M|B.K"   "G.M|G.K"   "X.X|X.L4"  "X.X|X.L4"  "O.W|B.MK"  "R.B|W.MK"  "X.X|X.G3"  "X.X|X.L6"  "YY.X|X.WK"
+
+names(re)
+re[-ind2,c("year","code","sex")] #Mad: 90 codes not matching format; 33 after cleaning, but some might be alright as K is not included in allowed letters
 re.incomplete.codes<-re[-ind2,"code"]
 
 
-cap[nchar(cap$ring)<6,] #MAIO: those without metal from 2007 and 2012
-cap[nchar(cap$ring)>6,] #MAIO: 0
+cap[nchar(cap$ring)<6,] #MAIO: those without metal from 2007 and 2012; MAD: >295, only colour rings J or A
+cap[nchar(cap$ring)>7, "ring"] #MAIO: 0; MAD 0
+
 #--------------fix codes & data in wrong format in captures/birdref:----------
+
 cap$code<-gsub(" ","",cap$code)
 cap$ring<-gsub(" ","",cap$ring)
-br$male<-gsub(" ","",br$male)
-br$female<-gsub(" ","",br$female)
 
-cap$sex<- gsub("f", "F", cap$sex)
-cap$sex<- gsub("m", "M", cap$sex)
+names(br)
+br$parent3
+br$parent1<-gsub(" ","",br$parent1)
+br$parent2<-gsub(" ","",br$parent2)
+
+# cap$sex<- gsub("f", "F", cap$sex)
+# cap$sex<- gsub("m", "M", cap$sex)
 table(cap$sex)
 
-#Ceuta
-#table(cap$age)
+#Ceuta and Mad
+table(cap$age)
+# A    C    J 
+# 2646   27 2699 
 #cap$age <- gsub("X","A", cap$age)
 #table(cap$age)
 
@@ -224,37 +250,65 @@ table(cap$sex)
 #-----------------------------------------------------------------
 
   #a) find duplicates in Ceuta:
-rownames(cap)
-cap$code.ring <- paste(cap$code,cap$ring, sep="-")
-cap$sex.code <- paste(cap$code, cap$sex, sep="-")
-
-  #a) Duplicate
-dupl <- cap[which(cap$comments_stdfile =="duplicate"),c("code","ring")]
+# rownames(cap)
+# cap$code.ring <- paste(cap$code,cap$ring, sep="-")
+# cap$sex.code <- paste(cap$code, cap$sex, sep="-")
   
-#   #b) list duplicates from Ceuta
+  #a) find duplicates in Mad:
+table(cap$species)
+cap$sp.code.ring <- paste(cap$species,"_", cap$code,"-", cap$ring, sep="")
+cap$sp.sex.code <- paste(cap$species,"_", cap$code, "-",cap$sex, sep="")
+
+  #a) Duplicate in MAIO only
+#dupl <- cap[which(cap$comments_stdfile =="duplicate"),c("code","ring")]
+  
+#   #b) list duplicates from Ceuta/Mad
 # 
 # library(stringr)
-# unique.code.ring<- unique(cap$code.ring)
+#unique.code.ring<- unique(cap$code.ring)
+unique.code.ring<- unique(cap$sp.code.ring) #4396 unique sp.code.ring
+
+lookdup <-strsplit(unique.code.ring, "-")
+
+library(plyr)
+ldup <- ldply(lookdup) #turn list into two columns
+#colnames(ldup) <- c("code","ring")
+colnames(ldup) <- c("sp_code","ring")  
 # 
-# lookdup <-strsplit(unique.code.ring, "-")
-# library(plyr)
-# ldup <- ldply(lookdup) #turn list into two columns
-# colnames(ldup) <- c("code","ring")  
 # 
+#pat<- "XX.XX"#get rid of ambiguous codes from list of duplicates
+#pat<- "X.X"
+# pat<- "X"
+# #pat2 <- ".XX"
+# # x <- ldup[!str_detect(ldup$code, pattern=pat) 
+# #            & !str_detect(ldup$code, pattern=pat2),] 
+# # str(x) #CEUTA: 529; 555; 530
 # 
-# pat<- "XX.XX"#get rid of ambiguous codes from list of duplicates
-# pat2 <- ".XX"
-# x <- ldup[!str_detect(ldup$code, pattern=pat) 
-#           & !str_detect(ldup$code, pattern=pat2),] 
-# str(x) #CEUTA: 529; 555; 530
+# library(stringr) 
+# #x <- ldup[!str_detect(ldup$code, pattern=pat),]
+# ind <- grep(ldup$sp_code, pattern=pat)
+# with.x <- ldup[ind,]
+# head(with.x)
+# 
+# head(with.x[order(with.x$sp_code),])
+# str(x) #Mad: 3502 obs
+# head(x)
 # 
 # ind <- which(duplicated(x$code) | duplicated(x$code, fromLast=TRUE))
-# str(x[ind,]) #34; 38; 36
+# str(x[ind,]) #MAIO 34; 38; 36
+#               #MAD: 2841
 # x1 <- x[ind,]
 # x1[order(x1$code),]
+
+ind <- which(duplicated(ldup$sp_code) | duplicated(ldup$sp_code, fromLast=TRUE))#MAD
+str(ldup[ind,]) #2595 duplicates?? including XX
+str(ldup[-ind,]) #1801 non duplicates
+
+x1 <- ldup[ind,]
+x1[order(x1$sp_code),]
 # 
-# dupl <- x1 #List of rings with duplicated codes 
-# str(dupl) #36
+dupl <- x1 #List of rings with duplicated codes 
+str(dupl) #36 Ceuta, 2592 in Mad including Juv
 # #-------------debug duplicates-------------------
 # cap[cap$ring %in% "CA2370",]
 # cap[cap$ring %in% "CV007",]
@@ -264,61 +318,105 @@ dupl <- cap[which(cap$comments_stdfile =="duplicate"),c("code","ring")]
 # #------------------------------------------------
 
 #2. Omit duplicated codes and rings from birdref
-rings.br <- union(br$male, br$female)
+#rings.br <- union(br$male, br$female)
+rings.br <- union(br$parent1, br$parent2)
 
-ind <- which(rings.br %in% dupl$code | rings.br %in% dupl$ring)
-omit1 <- rings.br[ind] #list of rings to omit
+ind <- which(rings.br %in% dupl$sp_code | rings.br %in% dupl$ring)
+omit1 <- rings.br[ind] #list of rings to omit MAD: 876 individuals need to be omitted
+rings.br[-ind]#Mad: 1287 individuals will be included
+  
+#---------------MAD:Check state of birdref-------------------
+table(br$year)
+table(br$site)
+table(br$nest)
 
+names(br)[12]<-"species"
+table(cap$species)
+table(br$species) #some need re-labelling
+br$species[br$species %in% "KIP"] <- "KiP"
+br$species[br$species %in% "WFP"] <- "WfP"
+br$species[br$species %in% "WP"] <- "WfP"
 
+#------------------------------------------------
 #---------------------------------------------------------------------
 #Extract appearances:
 library(stringr)
 # 1. List all appearances of each individual in a year:
 #   a. List all known males and females in BirdRef, 
 #   a.1 use omit1 to clear duplicates
-names(br)
-head(br)
-males.with.dupl <- br[!is.na(br$male) &
-                        br$male != "XX.XX|XX.XX",]
-names(males.with.dupl)
-males <- males.with.dupl[!males.with.dupl$male %in% omit1, ] 
+# names(br)
+# head(br)
+# males.with.dupl <- br[!is.na(br$male) &
+#                         br$male != "XX.XX|XX.XX",]
+# names(males.with.dupl)
+# males <- males.with.dupl[!males.with.dupl$male %in% omit1, ] 
 #Ceuta: males$sex <- "M"
 #Ceuta: males$mate_sex <- "F"
 
+# males$ring
+# 
+# females.with.dupl <- br[!is.na(br$female) & 
+#                           br$female != "XX.XX|XX.XX",] #SITE CHANGE
+# females <- females.with.dupl[!females.with.dupl$female %in% omit1,]
+#Ceuta: females$sex <- "F"
+#Ceuta: females$mate_sex <-"M"
 #MAIO:
-colnames(males)[c(4,5,9:14)] <- c("ring","mate_ring","field_sex_focal","mol_sex_focal","captured_focalyear_focal","field_sex_mate","mol_sex_mate","captured_focalyear_mate") #SITE CHANGE
+#colnames(males)[c(4,5,9:14)] <- c("ring","mate_ring","field_sex_focal","mol_sex_focal","captured_focalyear_focal","field_sex_mate","mol_sex_mate","captured_focalyear_mate") #SITE CHANGE
 
 #CEUTA: (change cols to change names)
 #colnames(males)[c(10,11,19,20)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
-
-males$ring
-
-females.with.dupl <- br[!is.na(br$female) & 
-                          br$female != "XX.XX|XX.XX",] #SITE CHANGE
-females <- females.with.dupl[!females.with.dupl$female %in% omit1,]
-#Ceuta: females$sex <- "F"
-#Ceuta: females$mate_sex <-"M"
-
 #MAIO:
-colnames(females)[c(5,4,9:14)] <- c("ring","mate_ring","field_sex_mate","mol_sex_mate","captured_focalyear_mate","field_sex_focal","mol_sex_focal","captured_focalyear_focal") #SITE CHANGE
+#colnames(females)[c(5,4,9:14)] <- c("ring","mate_ring","field_sex_mate","mol_sex_mate","captured_focalyear_mate","field_sex_focal","mol_sex_focal","captured_focalyear_focal") #SITE CHANGE
 
 #CEUTA: (change cols to change names)
 #colnames(females)[c(11,10,19,20)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
-tail(females)
+#tail(females)
+#-------------------------------------
+#a.1 Madagascar:
 
-ids.1 <- as.data.frame(rbind(males,  females))
+head(br)
+table(br$parent1)
+
+p1.with.dupl <- br[!is.na(br$parent1) &
+                        br$parent1 != "X.X|X.X",]
+names(p1.with.dupl)
+p1 <-p1.with.dupl[!p1.with.dupl$parent1 %in% omit1, ] 
+p1$parent1
+
+p2.with.dupl <- br[!is.na(br$parent2) & 
+                     !br$parent2 %in% c("X.X|X.X","UNK"),] #SITE CHANGE
+p2 <- p2.with.dupl[!p2.with.dupl$parent2 %in% omit1,]
+p2$parent2
+
+colnames(p1)[c(6,7)] <- c("ring","mate_ring") #SITE CHANGE
+colnames(p2)[c(6,7)] <- c("ring","mate_ring") #SITE CHANGE
+
+#--------------------------------------
+
+#ids.1 <- as.data.frame(rbind(males,  females))
+ids.1 <- as.data.frame(rbind(p1,  p2))
 head(ids.1)
 tail(ids.1)
-
-pat<- "XX"#get rid of ambiguous codes from list of ids
+ids.1$ring
+#pat<- "XX"#get rid of ambiguous codes from list of ids
+pat<- "UNK"
 ids2 <- ids.1[!str_detect(ids.1$ring, pattern=pat),] 
+
+#Maio:
+#ids.1[str_detect(ids.1$ring, pattern=pat),"ring"]
 
 #CEUTA:
 #ids<-ids2[ids2$year != 2013,]#restrict ids from Ceuta to 2006-2012 (omit 2013)
 #head(ids)
 #ids$ring
 
-#ids.1[str_detect(ids.1$ring, pattern=pat),"ring"]
+#MAD: omit sites not in Andavadoaka
+table(ids2$site)
+ids<-ids2[ids2$site %in% "Andavadoaka",]
+str(ids) #1330 obs
+
+table(ids$year)
+
 
 #head(ids)
 str(ids.1) #MAIO: 996 obd (up to 2014), 1169 (up to 2015), 1166 (2nd run?)
@@ -334,45 +432,59 @@ str(ids2) #MAIO: 1126
         #combinations that are complete and the first
         #appearance of each combination to know ringing year
 
-ids<-ids2 #rename
+ids2<-ids #rename
+ids<-ids2
+
 table(cap$year)
 table(ids$year)
 table(cap$sex)
-#Ceuta: table(cap$age)
+
+#Ceuta & Mad: 
+table(cap$age)
 
 ids$code <- NA
 
 #MAIO:
-cap.1 <- cap[cap$sex !="J",]#restrict captures to adults
-#CEUTA: cap.1 <- cap[cap$age !="J",]
+#cap.1 <- cap[cap$sex !="J",]#restrict captures to adults
+#CEUTA & MAD:
+cap.1 <- cap[cap$age !="J",]
 
-pat<- "XX"#get rid of ambiguous codes from list of adult captures
-cap.2<-cap.1[!str_detect(cap.1$code, pattern=pat),] 
-cap.1<-cap.2
+cap.1$code
+#pat<-"XX"
+pat<- "X\\.X\\|M\\.X"#get rid of ambiguous codes from list of adult captures
+pat2<-"X\\.X\\|X\\.M"
+cap.1[grep(cap.1$code, pattern=pat),c("year","ring","code")]
+cap.2<-cap.1[-grep(cap.1$code, pattern=c(pat)),] 
+table(cap.2$code)
+cap.1<-cap.2[-grep(cap.2$code, pattern=c(pat2)),]
 
-ind<-which(nchar(ids$ring)>9) #6 in Maio (more in 2nd run), 18 in Ceuta
+#ind<-which(nchar(ids$ring)>9) #6 in Maio (more in 2nd run), 18 in Ceuta
+ind<-which(nchar(ids$ring)>7) #in Mad only those without any metal
 ids[ind,]
 
 for(i in 1:length(ids$year)){ #if code is under ring...put it in code
-  if(nchar(ids$ring[i])>9)
-    ids$code[i] <- ids$ring[i]
+#  if(nchar(ids$ring[i])>9) #Ceuta and Maio
+  if(nchar(ids$ring[i])>7) #Mad
+  ids$code[i] <- ids$ring[i]
 }
 
+
+#------------------------
 for(i in 1:length(ids$year)){ #if code is empty, search ring in capt and fill it
   if(is.na(ids$code[i]))
     ids$code[i] <- cap.1$code[match(ids$ring[i], cap.1$ring)]    
 }
 
-for(i in 1:length(ids$year)){ #if ring has a code, search ring using code and replace
-  if(nchar(ids$ring[i])>9)
-    ids$ring[i] <- cap.1$ring[match(ids$code[i], cap.1$code)]
-}
+# for(i in 1:length(ids$year)){ #if ring has a code, search ring using code and replace#NOT IN MAD
+#   if(nchar(ids$ring[i])>9)
+#     ids$ring[i] <- cap.1$ring[match(ids$code[i], cap.1$code)]
+# }
 
-for(i in 1:length(ids$year)){#if adult has no metal ring, use code instead of ring
-  if(nchar(ids$ring[i])>9 | is.na(ids$ring[i]))
-    if(nchar(cap.1$ring[match(ids$code[i], cap.1$code)])<11)
-      ids$ring[i] <- cap.1$code[match(ids$code[i],cap.1$code)]
-}
+# for(i in 1:length(ids$year)){#if adult has no metal ring, use code instead of ring#NOT IN MAD
+#   if(nchar(ids$ring[i])>9 | is.na(ids$ring[i]))
+#     if(nchar(cap.1$ring[match(ids$code[i], cap.1$code)])<11)
+#       ids$ring[i] <- cap.1$code[match(ids$code[i],cap.1$code)]
+# }
 
 
 #-----debug ----
@@ -383,6 +495,10 @@ tail(ids)
 head(ids[ids$captured_focalyear_focal =="no" ,] )
 
 cap[cap$ring %in% "CA1148",] #this was captured but as Female??
+
+#MAD:
+cap.1[cap.1$code %in% "X.X|X.M",]
+
 
 #Both:
 tail(ids[order(ids$ring),c("code","ring","year")])
@@ -409,11 +525,11 @@ ids[nchar(ids$ring)<12 & nchar(ids$ring)>8,]
 # #ids[ids$code %in% c("RX.MX|YX.BX"),"ring"] <- "RX.MX|YX.BX"
 #---------continue debug and changes made to Ceuta
 
-table(ids$code)
-unique(ids$code) #Maio: 472 unique codes, some ambiguous OX.MX|RX.??
-regexp<-"([OX]{2})\\.([MX]{2})\\|([RX]{2})\\.([A-Z]{2})$"
-cap.1[grep(cap.1$code, pat=regexp),]
-ids[grep(ids$code, pat=regexp),]
+# table(ids$code)
+# unique(ids$code) #Maio: 472 unique codes, some ambiguous OX.MX|RX.??
+# regexp<-"([OX]{2})\\.([MX]{2})\\|([RX]{2})\\.([A-Z]{2})$"
+# cap.1[grep(cap.1$code, pat=regexp),]
+# ids[grep(ids$code, pat=regexp),]
 
 #Ceuta changes:
 # which(br$female %in% "CA127") #corrected
@@ -458,38 +574,42 @@ ids[grep(ids$code, pat=regexp),]
 
 #-----Changes made in MAIO, omit from Ceuta------ 
 
-omit2<-ids[is.na(ids$code)|is.na(ids$ring),c("nest","site","code","ring","year")]
-# # nest site        code   ring year
-# # 887  bs--8    S        <NA> CA4094 2014* this was ringed as chick...but it doesn't appear in alex captures
-# # 546     -9    S OX.RX|WX.WX   <NA> 2012* wrong code...in notes appears as that
-# # 7521    32    S OX.MX|RX.??   <NA> 2013* incomplete code, not captured
-# # 8811 bs--2    S        <NA> CA2929 2014* this ring does not exist in captures made note in mistakes of Maio 04/08/2015
-
-str(omit2) #MAIO: 24 obs with missing ring or code
-cap[cap$ring %in% omit2$ring,] #all have ambiguous codes
-
-
-# #omit these for now for data extraction:
-ind <- which(ids$code %in% omit2$code[!is.na(omit2$code)]| ids$ring %in% omit2$ring[!is.na(omit2$ring)])
-ids2 <- ids[-ind,]
-str(ids2) #1102 observations
-
-# #omit negative broods of 2014 that alex found before september
-pat <- "bs-"
-ind <- which(str_detect(ids2$nest, pattern=pat))
-ids2[ind,]#there is no bs--5, but bs--4 and bs--6! bs--5 had been omitted before as no adult was known
-ids.final <- ids2[-ind,] 
-ids.final[,c("year","site","nest","code","ring")]
- 
+# omit2<-ids[is.na(ids$code)|is.na(ids$ring),c("nest","site","code","ring","year")]
+# # # nest site        code   ring year
+# # # 887  bs--8    S        <NA> CA4094 2014* this was ringed as chick...but it doesn't appear in alex captures
+# # # 546     -9    S OX.RX|WX.WX   <NA> 2012* wrong code...in notes appears as that
+# # # 7521    32    S OX.MX|RX.??   <NA> 2013* incomplete code, not captured
+# # # 8811 bs--2    S        <NA> CA2929 2014* this ring does not exist in captures made note in mistakes of Maio 04/08/2015
+# 
+# str(omit2) #MAIO: 24 obs with missing ring or code
+# cap[cap$ring %in% omit2$ring,] #all have ambiguous codes
+# 
+# 
+# # #omit these for now for data extraction:
+# ind <- which(ids$code %in% omit2$code[!is.na(omit2$code)]| ids$ring %in% omit2$ring[!is.na(omit2$ring)])
+# ids2 <- ids[-ind,]
+# str(ids2) #1102 observations
+# 
+# # #omit negative broods of 2014 that alex found before september
+# pat <- "bs-"
+# ind <- which(str_detect(ids2$nest, pattern=pat))
+# ids2[ind,]#there is no bs--5, but bs--4 and bs--6! bs--5 had been omitted before as no adult was known
+# ids.final <- ids2[-ind,] 
+# ids.final[,c("year","site","nest","code","ring")]
+#  
 
 #----------------------------01/02/2016----
-#ids.final<-ids
+ids.final<-ids
 str(ids.final) #1038 obs Ceuta; 1085 (09/02/2016, using BirdSoc);1031 (10/02/2016 up to 2012 only)
                 #1093 obs Maio
+                #1330 Mad
 table(ids.final$year) 
-ids.final$nest.id <- paste(ids.final$year, ids.final$site, ids.final$nest, sep="-")
+table(ids.final$site)
+#ids.final$nest.id <- paste(ids.final$year, ids.final$site, ids.final$nest, sep="-")
+ids.final$nest.id <- paste(ids.final$year, ids.final$species, ids.final$nest, sep="-")
 unique(ids.final$nest.id) #CEUTA 602; 601 (10/02/2016, using BirdSoc up to 2012)
                           #MAIO 721
+                          #Mad 1038
 
 
 #       a.3 Add year when metal was added and year when code was added (copied from create colour code field sheet.R)
@@ -520,23 +640,32 @@ for(i in 1:length(cap$year)){
 ids.final$year.cr <- NA
 ids.final$year.mr <- NA
 
+ids.final$ring[ids.final$ring == ids.final$code]<-"NA" #TO FIX ERROR IN MADAGASCAR
+ids.final$code.ring <- paste(ids.final$code, ids.final$ring, sep="-")
+
+# for(i in 1:length(ids.final$year)){ 
+#     ids.final$year.cr[i] <- cap.1$year.cr[match(ids.final$code[i], cap.1$code)]
+#     ids.final$year.mr[i] <- cap$year.mr[match(ids.final$ring[i], cap$ring)]
+# }
 for(i in 1:length(ids.final$year)){ 
-    ids.final$year.cr[i] <- cap.1$year.cr[match(ids.final$code[i], cap.1$code)]
+    ids.final$year.cr[i] <- cap.1$year.cr[match(ids.final$code.ring[i], cap.1$code.ring)]
     ids.final$year.mr[i] <- cap$year.mr[match(ids.final$ring[i], cap$ring)]
 }
 
 
-
-#-------------debug a.3----------------
+#-------------debug a.3----------------16/03/2016
 head(ids.final)
 ids.final[,c("year.cr","year.mr")]
 ids.final[ids.final$year.cr!=ids.final$year.mr, c("year.cr", "year.mr","ring")]
 ids.final[ids.final$year.cr<ids.final$year.mr,]#CEUTA None ,/, colour rings should have been added after metal ring...unless CR changed (duplicates, omitted from this dataset)
                                               #MAIO None
+                                              #MAD none
 
-ids.final[is.na(ids.final$year.cr),] #CEUTA: none, Maio: none
+ids.final[is.na(ids.final$year.cr),] #CEUTA: none, Maio: none, MAD: individuals without metal appear heres without year cr was added....change code.ring
+ids.final[ids.final$code == ids.final$ring,]
+
 ids.final[is.na(ids.final$year.mr),] #Ceuta: 1 (BX.WX|BX.OX); MAIO: none
-ids.final[ids.final$ring == ids.final$code,]
+
 
 #CEUTA ids.final$year.mr[ids.final$ring == ids.final$code]<-NA
 
@@ -544,6 +673,11 @@ head(cap[!cap$age %in% "J",c("year.mr","sex","ring")])
 cap[cap$ring %in% "CA3801",]
 cap.1[cap.1$ring %in% "CA3801",]
 cap[cap$ring %in% "CA3801",]
+
+#-------------develop a.3
+cap.1<-cap.1[order(cap.1$code.ring, cap.1$year, cap.1$date),]
+tail(cap.1, n=300)
+
 #-----------------------------------------------------------------------------
 
 #----CEUTA: see if all rings-nests from BirdRef are in Capt-------------------------
