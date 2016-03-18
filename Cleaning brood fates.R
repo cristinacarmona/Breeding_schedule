@@ -3,7 +3,9 @@
 
 #1st log 17/03/2016 Create code using "Cleaning Resightings" code as base,
                     #found unmatching rings between broodfates and captures....
+#2nd log 18/03/2016 Checking list of nests found with non-matching rings in captures or birdRef
 
+#------------------------------------------------------------------------
 #Madagascar
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
 
@@ -279,27 +281,70 @@ bfa[!bfa$parent %in% "4",]
 
 
 #-----------------------------check issue 3------------------------
-#check that parents new rings match the nest in captures
+#omit for this part nests in captures or birdref which are not in brood fates/
+#ids cannot be checked from these
+cap$nest.id <- paste(cap$year, cap$species, cap$nest, sep="-")
+cap.nests <- unique(cap$nest.id)
 
-nestid.ring.all1<-paste(bfa$nest.id, bfa$parent1, sep="-")
-nestid.ring.all2<-paste(bfa$nest.id, bfa$parent2, sep="-")
+bf.nests<- unique(bfa$nest.id)
 
-nestid.ring.unique<-c(unique(nestid.ring.all1), unique(nestid.ring.all2))
-#list of unique nests with rings associated to it in brood fates
+ids.check1<-intersect(cap.nests, bf.nests) #506 nests
 
+br.nests<-unique(ids.final$nest.id)
+ids.check2<-intersect(bf.nests, br.nests)#358
+
+ids.check<-bf.nests[bf.nests%in%ids.check1 | bf.nests %in% ids.check2]#510
+
+#check that parents new rings match the nest in captures or BirdRef
+
+bfa$nestid.ring1<-paste(bfa$nest.id, bfa$parent1, sep="-")
+bfa$nestid.ring2<-paste(bfa$nest.id, bfa$parent2, sep="-")
+
+nestid.ringall1<-bfa[!is.na(bfa$parent1) & bfa$nest.id %in% ids.check, "nestid.ring1"]
+nestid.ringall2<-bfa[!is.na(bfa$parent2) & bfa$nest.id %in% ids.check, "nestid.ring2"]
+nestid.ring.unique.bfa<-c(unique(nestid.ringall1), unique(nestid.ringall2)) #471 list of unique nests with rings associated to it in brood fates
+
+#add ids from birdreference as some birds were not captured but id was known
+#[used as parallel code from extract_breeding schedule to use ids.final]
+ids.final$nest.id.ring <-paste(ids.final$nest.id, ids.final$ring, sep="-")#from extract_breedingschedule code up to line 950
+ids.final$nest.id.code <-paste(ids.final$nest.id, ids.final$code, sep="-")
+nest.idring.bref<-ids.final$nest.id.ring[!is.na(ids.final$ring)
+                                     & ids.final$nest.id %in% ids.check]#428
+nest.idcode.bref<-ids.final$nest.id.code[is.na(ids.final$ring) & !is.na(ids.final$code) &
+                                           ids.final$nest.id %in% ids.check] #50
+unique(nest.idcode.bref) #50 same
+
+#add ids from captures
 cap.nodupl$nest.id <- paste(cap.nodupl$year, cap.nodupl$species, cap.nodupl$nest, sep="-")
-cap.nodupl<-cap.nodupl[cap.nodupl$age %in% "A",]
+cap.nodupl<-cap.nodupl[cap.nodupl$age %in% "A" & cap.nodupl$nest.id %in% ids.check,]
+cap.nodupl$nest.id.ring<-paste(cap.nodupl$nest.id, cap.nodupl$ring, sep="-")
+cap.nodupl$nest.id.code <-paste(cap.nodupl$nest.id, cap.nodupl$code, sep="-")
 
-nestidcap.ring.all<-paste(cap.nodupl$nest.id, cap.nodupl$ring, sep="-")
-nestidcap.unique<-unique(nestidcap.ring.all)
+nestidring.cap<-cap.nodupl$nest.id.ring[!is.na(cap.nodupl$ring) 
+                                        & cap.nodupl$nest.id %in% ids.check]#452
+nest.id.ring.cap<-unique(nestidring.cap)#440
 
-setdiff(nestid.ring.unique, nestidcap.unique) #531 in bfa but not in cap (many NAs), 
-intersect(nestid.ring.unique, nestidcap.unique)#433 intersect
-setdiff(nestidcap.unique, nestid.ring.unique) #1209 in cap but not in bfa
+nest.id.code.cap<-cap.nodupl$nest.id.code[!is.na(cap.nodupl$code) &
+                                            is.na(cap.nodupl$ring) &
+                                            cap.nodupl$nest.id %in% ids.check]#50
+
+ids.cap_bref1<-c(nest.idcode.bref, nest.idring.bref, nest.id.ring.cap,
+                    nest.id.code.cap)
+ids.cap_bref<-unique(ids.cap_bref1) #536
+
+
+
+setdiff(ids.cap_bref, nestid.ring.unique.bfa) #145 in cap and bref but not in bfa (many NAs), 
+
+setdiff(nestid.ring.unique.bfa, ids.cap_bref) #67 in bfa but not in cap or bref
 
 #-------------debug-------------------------
-
-
+bfa[bfa$nest.id %in% "2013-KiP-36",]
+cap.nodupl[cap.nodupl$nest.id %in% "2013-KiP-36",]
+cap[cap$nest.id %in% "2013-KiP-36",]
+ids.final[ids.final$nest.id %in% "2013-KiP-36",]
+br[br$nest.id %in% "2013-KiP-36",]
+ids.final[!is.na(ids.final$parent3),]
 #--------------------------------------------
 
 #----------------------WRITE STD FILE
