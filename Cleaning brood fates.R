@@ -337,13 +337,37 @@ ids.cap_bref<-unique(ids.cap_bref1) #536
 setdiff(ids.cap_bref, nestid.ring.unique.bfa) #145 in cap and bref but not in bfa (many NAs), 
 
 setdiff(nestid.ring.unique.bfa, ids.cap_bref) #67 in bfa but not in cap or bref
+# [1] "2013-KiP--108-FH68899" "2013-KiP--107-FH69285" "2013-KiP--102-FH69278"
+# [4] "2013-KiP--62-FH69234"  "2013-KiP--35-FH72732"  "2013-KiP--28-FH72383" 
+# [7] "2013-KiP--19-FH47538"  "2013-KiP--9-FH47466"   "2013-KiP-25-FH47801"  
+# [10] "2013-KiP-36-FH68833"   "2013-KiP-124-FH72239"  "2013-KiP-131-FH69071" 
+# [13] "2013-KiP-157-FH47352"  "2013-KiP-219-FH72713"  "2013-MP--102-FH17826" 
+# [16] "2013-MP--102-FH68762"  "2013-MP--102-FH73211"  "2013-MP-1-FH17803"    
+# [19] "2013-MP-1-FH47521"     "2013-WfP--103-FH68802" "2013-WfP--102-FH47251"
+# [22] "2013-WfP--1-FH69296"   "2013-WfP-5-FH69256"    "2013-WfP-44-FH72619"  
+# [25] "2014-KiP--5-FH68789"   "2014-KiP-103-FH69257"  "2014-KiP--107-FH72351"
+# [28] "2014-KiP--114-FH72151" "2014-KiP--108-FH68981" "2014-KiP--105-FH72534"
+# [31] "2014-KiP-124-FH73026"  "2014-WfP--108-FH47227" "2014-WfP-106-FH69208" 
+# [34] "2014-WfP--108-FH69253" "2014-MP-108-FH48000"   "2014-KiP--3-FH72739"  
+# [37] "2014-WfP--8-FH69188"   "2014-WfP--8-FH69034"   "2014-KiP--23-FH72885" 
+# [40] "2014-KiP--27-FH73033"  "2014-MP--4-FH17875"    "2014-KiP-323-FH69204" 
+# [43] "2015-KiP-108-FH69255"  "2015-KiP-206-FH772320" "2015-KiP-231-FH73143" 
+# [46] "2015-KiP-302-FH73086"  "2015-KiP-104-FH72227"  "2015-KiP-304-FH68982" 
+# [49] "2015-WfP-307-FH69212"  "2015-KiP-509-FH73458"  "2015-KiP-622-FH72941" 
+# [52] "2015-KiP--7-FH69003"   "2015-KiP-603-FH47190"  "2015-WfP--2-FH69247"  
+# [55] "2013-MP--101-FH72680"  "2013-MP-210-FH47521"   "2013-WfP--3-FH72396"  
+# [58] "2013-WfP--1-FH69298"   "2013-WfP-44-FH72691"   "2014-MP-2-FH72680"    
+# [61] "2014-WfP-104-FH72407"  "2014-WfP-104-FH72572"  "2014-MP-302-FH72715"  
+# [64] "2014-WfP-303-FH72711"  "2014-WfP-112-FH47271"  "2015-KiP-108-FH72223" 
+# [67] "2015-WfP-605-FH47110" 
 
 #-------------debug-------------------------
-bfa[bfa$nest.id %in% "2013-KiP-36",]
-cap.nodupl[cap.nodupl$nest.id %in% "2013-KiP-36",]
-cap[cap$nest.id %in% "2013-KiP-36",]
-ids.final[ids.final$nest.id %in% "2013-KiP-36",]
-br[br$nest.id %in% "2013-KiP-36",]
+#check each nest:
+bfa[bfa$nest.id %in% "2013-KiP--35",]
+cap.nodupl[cap.nodupl$nest.id %in% "2013-KiP--35",]
+cap[cap$nest.id %in% "2013-KiP--35",]
+ids.final[ids.final$nest.id %in% "2013-KiP--35",]
+br[br$nest.id %in% "2013-KiP--35",]
 ids.final[!is.na(ids.final$parent3),]
 #--------------------------------------------
 

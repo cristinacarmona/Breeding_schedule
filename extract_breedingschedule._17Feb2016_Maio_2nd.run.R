@@ -35,7 +35,7 @@
 #15/03/2016 1st log - Start running and clearing mistakes, produced Resightings std file for MAD using cleaning code.
 #16/03/2016 2nd log - Up to line 663 found some errors in BRef....need correction
 #17/03/2016 3rd log - Continue from 663, clear errors found in BirdRef, created Cleaning brood fates.R
-
+#18/03/2016 4th log - Modified line 393
 
 
 #---------------------------------------------------------------
@@ -390,7 +390,7 @@ p2 <- p2.with.dupl[!p2.with.dupl$parent2 %in% omit1,]
 p2$parent2
 
 colnames(p1)[c(6,7)] <- c("ring","mate_ring") #SITE CHANGE
-colnames(p2)[c(7,6)] <- c("ring","mate_ring") #SITE CHANGE
+colnames(p2)[c(7,6)] <- c("ring","mate_ring") #SITE CHANGE #FOUND ERROR...18/03/2016 column numbers had to be changed
 
 #--------------------------------------
 
