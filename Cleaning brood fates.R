@@ -22,9 +22,14 @@ ls()
 working.list <- import.list
 names(working.list) <- c("bf","br","cap","sex","sex2","ne","re2","re")
 
+#re-load captures file
+# choose.cap<-csvfiles[3]
+# import.list2 <- lapply(choose.cap, read.csv, header = TRUE, as.is=TRUE, na.strings=c("NA"," ",""))
+# work.l<-import.list2
+# names(work.l)<-c("cap.raw")
 
 attach(working.list)
-
+attach(work.l)
 #-------------------------------------------------------------------------
 
 #Resightings:
@@ -186,6 +191,7 @@ table(bfa$parent2)
 # #Turn codes into rings
 
 #a) find duplicates in Mad so rings can be replaced in brood fates:
+#cap<-cap.raw #when re-loading raw captures file
 cap<-cap[cap$site %in% "Andavadoaka",] #correct Issue 2....needs to be applied in Extract_breedingschedule code
 table(cap$species)
 cap$sp.code.ring <- paste(cap$species,"_", cap$code,"-", cap$ring, sep="")
@@ -363,11 +369,14 @@ setdiff(nestid.ring.unique.bfa, ids.cap_bref) #67 in bfa but not in cap or bref
 
 #-------------debug-------------------------
 #check each nest:
-bfa[bfa$nest.id %in% "2013-KiP--35",]
-cap.nodupl[cap.nodupl$nest.id %in% "2013-KiP--35",]
-cap[cap$nest.id %in% "2013-KiP--35",]
-ids.final[ids.final$nest.id %in% "2013-KiP--35",]
-br[br$nest.id %in% "2013-KiP--35",]
+bfa[bfa$nest.id %in% "2013-KiP-157",]
+cap.nodupl[cap.nodupl$nest.id %in% "2013-KiP-157",]
+cap[cap$nest.id %in% "2013-KiP-157",]
+ids.final[ids.final$nest.id %in% "2013-KiP-157",]
+
+br$nest.id<-paste(br$year, br$species, br$nest, sep="-")
+br[br$nest.id %in% "2013-KiP-131",]
+
 ids.final[!is.na(ids.final$parent3),]
 #--------------------------------------------
 
