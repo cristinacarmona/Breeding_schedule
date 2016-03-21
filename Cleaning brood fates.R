@@ -4,6 +4,8 @@
 #1st log 17/03/2016 Create code using "Cleaning Resightings" code as base,
                     #found unmatching rings between broodfates and captures....
 #2nd log 18/03/2016 Checking list of nests found with non-matching rings in captures or birdRef
+#3rd log 21/03/20126 fixed duplicate search, produced list of 52 nests that are problematic 
+#                   Decided to flag these nests as poor quality brood care, and still include them in bschedule data
 
 #------------------------------------------------------------------------
 #Madagascar
@@ -478,10 +480,10 @@ setdiff(nestid.ring.unique.bfa, ids.cap_bref) #67 in bfa but not in cap or bref
 
 #-------------debug-------------------------
 #check each nest:
-bfa[bfa$nest.id %in% "2014-WfP-106",]
-cap.nodupl[cap.nodupl$nest.id %in% "2014-WfP-106",]
-cap[cap$nest.id %in% "2014-WfP-106",]
-ids.final[ids.final$nest.id %in% "2014-WfP-106",]
+bfa[bfa$nest.id %in% "2014-WfP-112",]
+cap.nodupl[cap.nodupl$nest.id %in% "2014-WfP-112",]
+cap[cap$nest.id %in% "2015-KiP-104",]
+ids.final[ids.final$nest.id %in% "2015-KiP-104",]
 
 br$nest.id<-paste(br$year, br$species, br$nest, sep="-")
 br[br$nest.id %in% "2014-WfP-106",]
@@ -504,12 +506,41 @@ unique(ignore) #52 nests
 str(bfa[!bfa$nest.id %in% ignore,]) #857 observations would remain
 unique(bfa[!bfa$nest.id %in% ignore,"nest.id"]) #494 nests included
 
-str(bfa[bfa$nest.id %in% ignore,]) #129 observations would be ignored
+str(bfa[bfa$nest.id %in% ignore & bfa$observer %in% "LEP",]) #129 observations would be ignored
 unique(bfa[bfa$nest.id %in% ignore,"nest.id"]) #56 nests ignored
 
-
+str(ids.final[ids.final$nest.id %in% ignore,]) #44 in ignore for ids.final
+str(ids.final[!ids.final$nest.id %in% ignore,]) #1712 nests would remain in ids.final
 
 #--------------------------------------------
+#ONLY IGNORE THESE NESTS FROM BROOD FATES AND MARK THEM AS poor quality brood fate data
+a<-setdiff(nestid.ring.unique.bfa, ids.cap_bref)
+b<-strsplit(a, "_")
+library(plyr)
+c <- ldply(b) #turn list into two columns
+colnames(c) <- c("nest.id","ring") 
+
+ignore <- c$nest.id
+unique(ignore) #52 nests
+
+bfa$bf.quality <- NA
+bfa[bfa$nest.id %in% ignore, "bf.quality"] <- "poor quality"
+
+#-----------------------------------------------
+#################################################
+#------------2. Add individual sexes-------------
+names(sex)
+
+letters<-"^[FH0-9]*$"
+for(i in 1:length(bfa$year)){ #modification for MAD, search for rings of individuals with code but no ring
+  if(!is.na(bfa$parent1[i]) & !grepl(pattern=letters, bfa$parent1[i], perl=T)){
+    bfa$mol_sex.p1[i] <- sex$sex[match(bfa$parent1[i], sex$ring)]
+  }
+  if(!is.na(bfa$parent2[i]) & !grepl(pattern=letters, bfa$parent2[i], perl=T)){
+    bfa$mol_sex.p2[i] <- sex$sex[match(bfa$parent2[i], sex$ring)]
+  }
+}
+#-----------------------------------------------------------------
 
 #----------------------WRITE STD FILE
 getwd()
