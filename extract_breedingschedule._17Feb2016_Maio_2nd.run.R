@@ -36,7 +36,7 @@
 #16/03/2016 2nd log - Up to line 663 found some errors in BRef....need correction
 #17/03/2016 3rd log - Continue from 663, clear errors found in BirdRef, created Cleaning brood fates.R
 #18/03/2016 4th log - Modified line 393....
-#21/03/2016 5th log - fix duplicates (also duplicates need to be modified only to Andavadoaka and omit XX ambiguous codes!)
+#21/03/2016 5th log - Issue2 - fixed duplicates (also duplicates need to be modified only to Andavadoaka and omit XX ambiguous codes!)
 
 
 #---------------------------------------------------------------

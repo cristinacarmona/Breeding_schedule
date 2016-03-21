@@ -192,33 +192,101 @@ table(bfa$parent2)
 
 #a) find duplicates in Mad so rings can be replaced in brood fates:
 #cap<-cap.raw #when re-loading raw captures file
-cap<-cap[cap$site %in% "Andavadoaka",] #correct Issue 2....needs to be applied in Extract_breedingschedule code
+cap<-cap[cap$site %in% "Andavadoaka",] #correct Issue 2....needs to be applied in Extract_breedingschedule code ,/ done 21/03/2016
 table(cap$species)
-cap$sp.code.ring <- paste(cap$species,"_", cap$code,"-", cap$ring, sep="")
+table(cap$species)
+cap$sp.code.ring <- paste(cap$species,"-", cap$code,"-", cap$ring, sep="")
 cap$sp.sex.code <- paste(cap$species,"_", cap$code, "-",cap$sex, sep="")
-unique.code.ring<- unique(cap$sp.code.ring) #4396 unique sp.code.ring, 3017 only ]Andavadoaka
+
+#a) Duplicate in MAIO only
+#dupl <- cap[which(cap$comments_stdfile =="duplicate"),c("code","ring")]
+
+#   #b) list duplicates from Ceuta/Mad
+# 
+# library(stringr)
+#unique.code.ring<- unique(cap$code.ring)
+unique.code.ring<- unique(cap$sp.code.ring[cap$site %in% "Andavadoaka"]) #3017 unique sp.code.ring
 
 lookdup <-strsplit(unique.code.ring, "-")
 
 library(plyr)
 ldup <- ldply(lookdup) #turn list into two columns
 #colnames(ldup) <- c("code","ring")
-colnames(ldup) <- c("sp_code","ring")  
-
-
-ind <- which(duplicated(ldup$sp_code) | duplicated(ldup$sp_code, fromLast=TRUE))#MAD
-str(ldup[ind,]) #2595 duplicates?? including XX, 1278 only Andavadoaka
-str(ldup[-ind,]) #1801 non duplicates; 1739 only Andavadoaka
-
-x1 <- ldup[ind,]
-x1[order(x1$sp_code),]
+colnames(ldup) <- c("sp","code","ring")  
 # 
-dupl <- x1 #List of rings and codes with duplicated codes 
-str(dupl) #36 Ceuta, 2592 in Mad including Juv
-dupl$sp.code.ring <- paste(dupl$sp_code, dupl$ring, sep="-")
+#-------debug-----
+head(ldup[order(ldup$ring),], n=1300)
+#----------------
+
+#Get rid of ambiguous codes to delete duplicates:
+pat0<-"X"
+
+x0 <- ldup[!str_detect(ldup$code, pattern=pat0),] #allow no Xs in codes (MAD)
+
+str(x) #CEUTA: 529; 555; 530
+#Mad: 3015
+
+str(x0) #1787
+x0[order(x0$code),]
+# 
+library(stringr) 
+#x <- ldup[!str_detect(ldup$code, pattern=pat),]
+# ind <- grep(ldup$sp_code, pattern=pat)
+# with.x <- ldup[ind,]
+# head(with.x)
+# 
+# head(with.x[order(with.x$sp_code),])
+# str(x) #Mad: 3502 obs
+# head(x)
+# ind <- which(duplicated(x$code) | duplicated(x$code, fromLast=TRUE)) 
+
+x0$sp.code <- paste(x0$sp, x0$code, sep="-")
+
+ind <- which(duplicated(x0$sp.code) | duplicated(x0$sp.code, fromLast=TRUE))
+str(x0[ind,]) #MAIO 34; 38; 36
+#               #MAD: 291
+# x1 <- x[ind,]
+x1 <- x0[ind,]
+x1[order(x1$code),]
+
+# ind <- which(duplicated(ldup$sp_code) | duplicated(ldup$sp_code, fromLast=TRUE))#MAD
+# str(ldup[ind,]) #2595 duplicates?? including XX
+# str(ldup[-ind,]) #1801 non duplicates
+
+# x1 <- ldup[ind,]
+# x1[order(x1$sp_code),]
+# 
+dupl <- x1 #List of rings with duplicated codes 
+str(dupl)
+
+#---------------------------------------------------------------------------
+#previous way of dealing with duplicates (includes ambiguous codes)
+# cap$sp.code.ring <- paste(cap$species,"_", cap$code,"-", cap$ring, sep="")
+# cap$sp.sex.code <- paste(cap$species,"_", cap$code, "-",cap$sex, sep="")
+# unique.code.ring<- unique(cap$sp.code.ring) #4396 unique sp.code.ring, 3017 only ]Andavadoaka
+# 
+# lookdup <-strsplit(unique.code.ring, "-")
+# 
+# library(plyr)
+# ldup <- ldply(lookdup) #turn list into two columns
+# #colnames(ldup) <- c("code","ring")
+# colnames(ldup) <- c("sp_code","ring")  
+# 
+# 
+# ind <- which(duplicated(ldup$sp_code) | duplicated(ldup$sp_code, fromLast=TRUE))#MAD
+# str(ldup[ind,]) #2595 duplicates?? including XX, 1278 only Andavadoaka
+# str(ldup[-ind,]) #1801 non duplicates; 1739 only Andavadoaka
+# 
+# x1 <- ldup[ind,]
+# x1[order(x1$sp_code),]
+# # 
+# dupl <- x1 #List of rings and codes with duplicated codes 
+# str(dupl) #36 Ceuta, 2592 in Mad including Juv
+# dupl$sp.code.ring <- paste(dupl$sp_code, dupl$ring, sep="-")
+#-----------------------------------------------------------------------------
 
 #----------
-sp_code.dupl<-unique(dupl$sp_code) #517; 170 only Andavadoaka
+sp_code.dupl<-unique(dupl$sp.code) #517; 170 only Andavadoaka; 95 omitting ambiguous
 
 
 #b) omit duplicates from captures-------
@@ -303,8 +371,8 @@ ids.check<-bf.nests[bf.nests%in%ids.check1 | bf.nests %in% ids.check2]#510
 
 #check that parents new rings match the nest in captures or BirdRef
 
-bfa$nestid.ring1<-paste(bfa$nest.id, bfa$parent1, sep="-")
-bfa$nestid.ring2<-paste(bfa$nest.id, bfa$parent2, sep="-")
+bfa$nestid.ring1<-paste(bfa$nest.id, bfa$parent1, sep="_")
+bfa$nestid.ring2<-paste(bfa$nest.id, bfa$parent2, sep="_")
 
 nestid.ringall1<-bfa[!is.na(bfa$parent1) & bfa$nest.id %in% ids.check, "nestid.ring1"]
 nestid.ringall2<-bfa[!is.na(bfa$parent2) & bfa$nest.id %in% ids.check, "nestid.ring2"]
@@ -312,7 +380,7 @@ nestid.ring.unique.bfa<-c(unique(nestid.ringall1), unique(nestid.ringall2)) #471
 
 #add ids from birdreference as some birds were not captured but id was known
 #[used as parallel code from extract_breeding schedule to use ids.final]
-ids.final$nest.id.ring <-paste(ids.final$nest.id, ids.final$ring, sep="-")#from extract_breedingschedule code up to line 950
+ids.final$nest.id.ring <-paste(ids.final$nest.id, ids.final$ring, sep="_")#from extract_breedingschedule code up to line 950
 ids.final$nest.id.code <-paste(ids.final$nest.id, ids.final$code, sep="-")
 nest.idring.bref<-ids.final$nest.id.ring[!is.na(ids.final$ring)
                                      & ids.final$nest.id %in% ids.check]#428
@@ -323,7 +391,7 @@ unique(nest.idcode.bref) #50 same
 #add ids from captures
 cap.nodupl$nest.id <- paste(cap.nodupl$year, cap.nodupl$species, cap.nodupl$nest, sep="-")
 cap.nodupl<-cap.nodupl[cap.nodupl$age %in% "A" & cap.nodupl$nest.id %in% ids.check,]
-cap.nodupl$nest.id.ring<-paste(cap.nodupl$nest.id, cap.nodupl$ring, sep="-")
+cap.nodupl$nest.id.ring<-paste(cap.nodupl$nest.id, cap.nodupl$ring, sep="_")
 cap.nodupl$nest.id.code <-paste(cap.nodupl$nest.id, cap.nodupl$code, sep="-")
 
 nestidring.cap<-cap.nodupl$nest.id.ring[!is.na(cap.nodupl$ring) 
@@ -343,41 +411,104 @@ ids.cap_bref<-unique(ids.cap_bref1) #536
 setdiff(ids.cap_bref, nestid.ring.unique.bfa) #145 in cap and bref but not in bfa (many NAs), 
 
 setdiff(nestid.ring.unique.bfa, ids.cap_bref) #67 in bfa but not in cap or bref
-# [1] "2013-KiP--108-FH68899" "2013-KiP--107-FH69285" "2013-KiP--102-FH69278"
-# [4] "2013-KiP--62-FH69234"  "2013-KiP--35-FH72732"  "2013-KiP--28-FH72383" 
-# [7] "2013-KiP--19-FH47538"  "2013-KiP--9-FH47466"   "2013-KiP-25-FH47801"  
-# [10] "2013-KiP-36-FH68833"   "2013-KiP-124-FH72239"  "2013-KiP-131-FH69071" 
-# [13] "2013-KiP-157-FH47352"  "2013-KiP-219-FH72713"  "2013-MP--102-FH17826" 
-# [16] "2013-MP--102-FH68762"  "2013-MP--102-FH73211"  "2013-MP-1-FH17803"    
-# [19] "2013-MP-1-FH47521"     "2013-WfP--103-FH68802" "2013-WfP--102-FH47251"
-# [22] "2013-WfP--1-FH69296"   "2013-WfP-5-FH69256"    "2013-WfP-44-FH72619"  
-# [25] "2014-KiP--5-FH68789"   "2014-KiP-103-FH69257"  "2014-KiP--107-FH72351"
-# [28] "2014-KiP--114-FH72151" "2014-KiP--108-FH68981" "2014-KiP--105-FH72534"
-# [31] "2014-KiP-124-FH73026"  "2014-WfP--108-FH47227" "2014-WfP-106-FH69208" 
-# [34] "2014-WfP--108-FH69253" "2014-MP-108-FH48000"   "2014-KiP--3-FH72739"  
-# [37] "2014-WfP--8-FH69188"   "2014-WfP--8-FH69034"   "2014-KiP--23-FH72885" 
-# [40] "2014-KiP--27-FH73033"  "2014-MP--4-FH17875"    "2014-KiP-323-FH69204" 
-# [43] "2015-KiP-108-FH69255"  "2015-KiP-206-FH772320" "2015-KiP-231-FH73143" 
-# [46] "2015-KiP-302-FH73086"  "2015-KiP-104-FH72227"  "2015-KiP-304-FH68982" 
-# [49] "2015-WfP-307-FH69212"  "2015-KiP-509-FH73458"  "2015-KiP-622-FH72941" 
-# [52] "2015-KiP--7-FH69003"   "2015-KiP-603-FH47190"  "2015-WfP--2-FH69247"  
-# [55] "2013-MP--101-FH72680"  "2013-MP-210-FH47521"   "2013-WfP--3-FH72396"  
-# [58] "2013-WfP--1-FH69298"   "2013-WfP-44-FH72691"   "2014-MP-2-FH72680"    
-# [61] "2014-WfP-104-FH72407"  "2014-WfP-104-FH72572"  "2014-MP-302-FH72715"  
-# [64] "2014-WfP-303-FH72711"  "2014-WfP-112-FH47271"  "2015-KiP-108-FH72223" 
-# [67] "2015-WfP-605-FH47110" 
+#61 with new duplicates assignment
+
+# [1] "2013-KiP--108-FH68899"
+# [2] "2013-KiP--107-FH69285"
+# [3] "2013-KiP--102-FH69278"
+# [4] "2013-KiP--62-FH69234" 
+# [5] "2013-KiP--35-FH72732" 
+# [6] "2013-KiP--28-FH72383" 
+# [7] "2013-KiP--19-FH47538" 
+# [8] "2013-KiP--9-FH47466"  
+# [9] "2013-KiP-25-FH47801"  
+# [10] "2013-KiP-36-FH68833"  
+# [11] "2013-KiP-124-FH72239" 
+# [12] "2013-KiP-131-FH69071" 
+# [13] "2013-KiP-157-FH47352" 
+# [14] "2013-KiP-219-FH72713" 
+# [15] "2013-MP--102-FH17826" 
+# [16] "2013-MP--102-FH68762" 
+# [17] "2013-MP--102-FH73211" 
+# [18] "2013-MP-1-FH17803"    
+# [19] "2013-MP-1-FH47521"    
+# [20] "2013-WfP--103-FH68802"
+# [21] "2013-WfP--102-FH47251"
+# [22] "2013-WfP--1-FH69296"  
+# [23] "2013-WfP-5-FH69256"   
+# [24] "2013-WfP-44-FH72619"  
+# [25] "2014-KiP-103-FH69257" 
+# [26] "2014-KiP--107-FH72351"
+# [27] "2014-KiP--114-FH72151"
+# [28] "2014-KiP--108-FH68981"
+# [29] "2014-KiP-124-FH73026" 
+# [30] "2014-WfP--108-FH47227"
+# [31] "2014-WfP--108-FH69253"
+# [32] "2014-MP-108-FH48000"  
+# [33] "2014-KiP--3-FH72739"  
+# [34] "2014-WfP--8-FH69188"  
+# [35] "2014-WfP--8-FH69034"  
+# [36] "2014-KiP--23-FH72885" 
+# [37] "2014-KiP--27-FH73033" 
+# [38] "2014-MP--4-FH17875"   
+# [39] "2014-KiP-323-FH69204" 
+# [40] "2015-KiP-108-FH69255" 
+# [41] "2015-KiP-206-FH772320"
+# [42] "2015-KiP-302-FH73086" 
+# [43] "2015-KiP-104-FH72227" 
+# [44] "2015-KiP-509-FH73458" 
+# [45] "2015-KiP-622-FH72941" 
+# [46] "2015-KiP--7-FH69003"  
+# [47] "2015-KiP-603-FH47190" 
+# [48] "2015-WfP--2-FH69247"  
+# [49] "2013-MP--101-FH72680" 
+# [50] "2013-MP-210-FH47521"  
+# [51] "2013-WfP--3-FH72396"  
+# [52] "2013-WfP--1-FH69298"  
+# [53] "2013-WfP-44-FH72691"  
+# [54] "2014-MP-2-FH72680"    
+# [55] "2014-WfP-104-FH72407" 
+# [56] "2014-WfP-104-FH72572" 
+# [57] "2014-MP-302-FH72715"  
+# [58] "2014-WfP-303-FH72711" 
+# [59] "2014-WfP-112-FH47271" 
+# [60] "2015-KiP-108-FH72223" 
+# [61] "2015-WfP-605-FH47110" 
+
 
 #-------------debug-------------------------
 #check each nest:
-bfa[bfa$nest.id %in% "2013-KiP-157",]
-cap.nodupl[cap.nodupl$nest.id %in% "2013-KiP-157",]
-cap[cap$nest.id %in% "2013-KiP-157",]
-ids.final[ids.final$nest.id %in% "2013-KiP-157",]
+bfa[bfa$nest.id %in% "2014-WfP-106",]
+cap.nodupl[cap.nodupl$nest.id %in% "2014-WfP-106",]
+cap[cap$nest.id %in% "2014-WfP-106",]
+ids.final[ids.final$nest.id %in% "2014-WfP-106",]
 
 br$nest.id<-paste(br$year, br$species, br$nest, sep="-")
-br[br$nest.id %in% "2013-KiP-131",]
+br[br$nest.id %in% "2014-WfP-106",]
 
 ids.final[!is.na(ids.final$parent3),]
+ids.final[ids.final$parent1 == ids.final$parent2,]
+head(br[br$parent1 == br$parent2 & !is.na(br$parent1),])
+
+
+#ignore these 61 cases? See how many nests in total remain in brood fates if these are ignored
+a<-setdiff(nestid.ring.unique.bfa, ids.cap_bref)
+b<-strsplit(a, "_")
+library(plyr)
+c <- ldply(b) #turn list into two columns
+colnames(c) <- c("nest.id","ring") 
+
+ignore <- c$nest.id
+unique(ignore) #52 nests
+
+str(bfa[!bfa$nest.id %in% ignore,]) #857 observations would remain
+unique(bfa[!bfa$nest.id %in% ignore,"nest.id"]) #494 nests included
+
+str(bfa[bfa$nest.id %in% ignore,]) #129 observations would be ignored
+unique(bfa[bfa$nest.id %in% ignore,"nest.id"]) #56 nests ignored
+
+
+
 #--------------------------------------------
 
 #----------------------WRITE STD FILE
