@@ -35,7 +35,8 @@
 #15/03/2016 1st log - Start running and clearing mistakes, produced Resightings std file for MAD using cleaning code.
 #16/03/2016 2nd log - Up to line 663 found some errors in BRef....need correction
 #17/03/2016 3rd log - Continue from 663, clear errors found in BirdRef, created Cleaning brood fates.R
-#18/03/2016 4th log - Modified line 393
+#18/03/2016 4th log - Modified line 393....
+#21/03/2016 5th log - fix duplicates (also duplicates need to be modified only to Andavadoaka and omit XX ambiguous codes!)
 
 
 #---------------------------------------------------------------
@@ -257,7 +258,7 @@ table(cap$age)
   
   #a) find duplicates in Mad:
 table(cap$species)
-cap$sp.code.ring <- paste(cap$species,"_", cap$code,"-", cap$ring, sep="")
+cap$sp.code.ring <- paste(cap$species,"-", cap$code,"-", cap$ring, sep="")
 cap$sp.sex.code <- paste(cap$species,"_", cap$code, "-",cap$sex, sep="")
 
   #a) Duplicate in MAIO only
@@ -267,26 +268,56 @@ cap$sp.sex.code <- paste(cap$species,"_", cap$code, "-",cap$sex, sep="")
 # 
 # library(stringr)
 #unique.code.ring<- unique(cap$code.ring)
-unique.code.ring<- unique(cap$sp.code.ring) #4396 unique sp.code.ring
+unique.code.ring<- unique(cap$sp.code.ring[cap$site %in% "Andavadoaka"]) #3017 unique sp.code.ring
 
 lookdup <-strsplit(unique.code.ring, "-")
 
 library(plyr)
 ldup <- ldply(lookdup) #turn list into two columns
 #colnames(ldup) <- c("code","ring")
-colnames(ldup) <- c("sp_code","ring")  
+colnames(ldup) <- c("sp","code","ring")  
 # 
-# 
-#pat<- "XX.XX"#get rid of ambiguous codes from list of duplicates
-#pat<- "X.X"
+#-------debug-----
+head(ldup[order(ldup$ring),], n=1300)
+#----------------
+
+#Get rid of ambiguous codes to delete duplicates:
+pat0<-"X"
+#------debug pat0---
+# ldup[str_detect(ldup$code, pattern=pat0),]
+# #------------------
+# #pat<- "XX.XX"#get rid of ambiguous codes from list of duplicates
+# pat<- "X\\.X"
+# #------debug pat-----
+# ldup[str_detect(ldup$code, pattern=pat),]
+# #----------------------
+# pat2<- "\\.X\\|[A-Z]{1}\\.X"
+# #----debug pat2---
+# ldup[str_detect(ldup$code, pattern=pat2),]
+# #---------------
+# pat3<- "X\\.[A-Z]{1}\\|X\\.[A-Z]{1}"
+# #----debug pat3---
+# ldup[str_detect(ldup$code, pattern=pat3),]
+#---------------
 # pat<- "X"
 # #pat2 <- ".XX"
-# # x <- ldup[!str_detect(ldup$code, pattern=pat) 
-# #            & !str_detect(ldup$code, pattern=pat2),] 
-# # str(x) #CEUTA: 529; 555; 530
+#  x <- ldup[!str_detect(ldup$code, pattern=pat) #Ceuta
+#             & !str_detect(ldup$code, pattern=pat2),] 
+
+#   x <- ldup[!str_detect(ldup$code, pattern=pat) #MAd
+#              & !str_detect(ldup$code, pattern=pat2)
+#             & !str_detect(ldup$code, pattern=pat3),] 
+
+x0 <- ldup[!str_detect(ldup$code, pattern=pat0),] #allow no Xs in codes (MAD)
+
+str(x) #CEUTA: 529; 555; 530
+      #Mad: 3015
+
+str(x0) #1787
+x0[order(x0$code),]
 # 
-# library(stringr) 
-# #x <- ldup[!str_detect(ldup$code, pattern=pat),]
+library(stringr) 
+#x <- ldup[!str_detect(ldup$code, pattern=pat),]
 # ind <- grep(ldup$sp_code, pattern=pat)
 # with.x <- ldup[ind,]
 # head(with.x)
@@ -294,22 +325,26 @@ colnames(ldup) <- c("sp_code","ring")
 # head(with.x[order(with.x$sp_code),])
 # str(x) #Mad: 3502 obs
 # head(x)
-# 
-# ind <- which(duplicated(x$code) | duplicated(x$code, fromLast=TRUE))
-# str(x[ind,]) #MAIO 34; 38; 36
-#               #MAD: 2841
+# ind <- which(duplicated(x$code) | duplicated(x$code, fromLast=TRUE)) 
+
+x0$sp.code <- paste(x0$sp, x0$code, sep="-")
+
+ind <- which(duplicated(x0$sp.code) | duplicated(x0$sp.code, fromLast=TRUE))
+str(x0[ind,]) #MAIO 34; 38; 36
+#               #MAD: 291
 # x1 <- x[ind,]
-# x1[order(x1$code),]
+x1 <- x0[ind,]
+x1[order(x1$code),]
 
-ind <- which(duplicated(ldup$sp_code) | duplicated(ldup$sp_code, fromLast=TRUE))#MAD
-str(ldup[ind,]) #2595 duplicates?? including XX
-str(ldup[-ind,]) #1801 non duplicates
+# ind <- which(duplicated(ldup$sp_code) | duplicated(ldup$sp_code, fromLast=TRUE))#MAD
+# str(ldup[ind,]) #2595 duplicates?? including XX
+# str(ldup[-ind,]) #1801 non duplicates
 
-x1 <- ldup[ind,]
-x1[order(x1$sp_code),]
+# x1 <- ldup[ind,]
+# x1[order(x1$sp_code),]
 # 
 dupl <- x1 #List of rings with duplicated codes 
-str(dupl) #36 Ceuta, 2592 in Mad including Juv
+str(dupl) #36 Ceuta, 291 in Mad including Juv
 # #-------------debug duplicates-------------------
 # cap[cap$ring %in% "CA2370",]
 # cap[cap$ring %in% "CV007",]
@@ -324,7 +359,7 @@ rings.br <- union(br$parent1, br$parent2)
 
 ind <- which(rings.br %in% dupl$sp_code | rings.br %in% dupl$ring)
 omit1 <- rings.br[ind] #list of rings to omit MAD: 876 individuals need to be omitted
-rings.br[-ind]#Mad: 1287 individuals will be included
+rings.br[-ind]#Mad: 2008 individuals will be included
   
 #---------------MAD:Check state of birdref-------------------
 table(br$year)
@@ -426,7 +461,11 @@ str(ids2) #MAIO: 1126
           #Ceuta: 1031 obs (up to 2012)
 #table(ids$year)
   #ids$ring
-
+#--------------debug
+#look for nest 2014-WfP-106...which disappears in ids.final:
+head(ids)
+ids[ids$ring %in% "FH69208",] #doesn't appear
+omit1[omit1 %in% "FH69208"] #it's in list of omit1
 #--------------------------------------------------
 #   a.2 Add colour combinations/rings:
         #use Captures but restrict to adults, only 
@@ -947,7 +986,7 @@ ids.final$end_date.r <- as.character(ids.final$end_date.r)
 #-----debug------
 head(ids.final)
 head(ids.final[!is.na(ids.final$clutch_size),])
-
+str(ids.final)#1756
 #---------------------
 
 #         iv. Broodfates (earliest and latest dates when male or female was seen)
