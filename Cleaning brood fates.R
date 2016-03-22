@@ -523,6 +523,8 @@ bfa[bfa$nest.id %in% ignore, "bf.quality"] <- "poor quality"
 #################################################
 #------------2. Add individual sexes-------------
 names(sex)
+table(sex$sex, useNA="always")
+sex<-sex[!is.na(sex$sex),]
 
 bfa$mol_sex.p1<-NA
 bfa$mol_sex.p2<-NA
@@ -560,9 +562,9 @@ for(i in 1:length(bfa$year)){ #modification for MAD, search for rings of individ
 
 #---debug 2.--------------------------------------------------------
 head(bfa)
-str(bfa[is.na(bfa$mol_sex.p1),]) #372 NAs in mol_sex.p1, after sp.code (b) 328 NAs
-str(bfa[is.na(bfa$mol_sex.p2),]) #822 NAs in mol_sex.p2, after sp.code (b) 815 NAs
-str(bfa[is.na(bfa$mol_sex.p2) & is.na(bfa$mol_sex.p1),]) #334 NAs in both molp1 and molp2, after sp.code (b) 290 NAs
+str(bfa[is.na(bfa$mol_sex.p1),]) #372 NAs in mol_sex.p1, after sp.code (b) 328 NAs; 254 after getting rid of NAs in mol sex file
+str(bfa[is.na(bfa$mol_sex.p2),]) #822 NAs in mol_sex.p2, after sp.code (b) 815 NAs; 805 after getting rid of NAs in mol sex file
+str(bfa[is.na(bfa$mol_sex.p2) & is.na(bfa$mol_sex.p1),]) #334 NAs in both molp1 and molp2, after sp.code (b) 290 NAs; 233 after getting rid of NAs in mol sex file
 
 #--------------------------------------------------
 
@@ -571,10 +573,9 @@ str(bfa[is.na(bfa$mol_sex.p2) & is.na(bfa$mol_sex.p1),]) #334 NAs in both molp1 
 #Both parents are present
 
 for(i in 1:length(bfa$year)){
-  if(!is.na(bfa$parent1[i]) & !is.na(bfa$parent2[i])){
+  if(!is.na(bfa$parent1[i]) & !is.na(bfa$parent2[i])|
+       !is.na(bfa$mol_sex.p1[i]) & !is.na(bfa$mol_sex.p2[i])){
     bfa$parent[i] <- 4
-  }else{
-    bfa$parent[i] <- NA
   }
 }
 
@@ -586,27 +587,50 @@ table(bfa$mol_sex.p2)
 
 #One parent present
 for(i in 1:length(bfa$year)){
-  if(!is.na(bfa$parent1[i]) & is.na(bfa$parent2[i])){
+  print(i)
+  if(!is.na(bfa$mol_sex.p1[i]) & is.na(bfa$mol_sex.p2[i])){
     if(bfa$mol_sex.p1[i] %in% "M"){
       bfa$parent[i] <- 3
     }else{
-      if(bfa$mol_sex.p1[i] %in% "F"){
+    if(bfa$mol_sex.p1[i] %in% "F"){
         bfa$parent[i] <- 2
       }
     }
   }else{
-    bfa$parent[i] <- NA
+    if(!is.na(bfa$mol_sex.p2[i]) & is.na(bfa$mol_sex.p1[i])){
+      if(bfa$mol_sex.p2[i] %in% "M"){
+        bfa$parent[i] <- 3
+      }else{
+        if(bfa$mol_sex.p2[i] %in% "F"){
+          bfa$parent[i] <- 2
+        }
+      }
+    }
   }
 }
-
 #---------------------debug
+table(bfa$parent, useNA="always")
+#     2    3    4 <NA> 
+#   149  444  168  225 
+
 bfa[is.na(bfa$parent1) & !is.na(bfa$parent2),]
 head(bfa)
 table(bfa$year)
+bfa[is.na(bfa$parent),c("parent1","parent2","new.code.p1","new.code.p2","mol_sex.p1", "mol_sex.p2", "parent")]
 #--------------------------
+
+#4. Add number of chicks
+
+bfa$no_chicks <- apply(bfa[,c("chick1","chick2","chick3")], 1, function(x) length(which(!is.na(x))))
+
+#---------debug----
+head(bfa)
+#----------------------
+
+
 
 #----------------------WRITE STD FILE
 getwd()
 setwd("F:/Plovers/3rd Chapter/input/Madagascar/")
-res.write <- res
-write.csv(res.write, "Resightings_Madagascar_stdfile_CCIMarch2016.csv")
+bfa.write <- bfa
+write.csv(bfa.write, "Broodfates_Madagascar_stdfile_CCIMarch2016.csv")
