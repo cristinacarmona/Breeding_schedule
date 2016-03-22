@@ -37,6 +37,7 @@ attach(work.l)
 #Resightings:
 #clean code rings
 bfa<-bf
+table(bfa$year)
 
 names(bfa)
 more.11chr <- bfa[nchar(bfa$parent1)!=7 | nchar(bfa$parent2)!=7, c("year","site","date","parent1","parent2","observer","comments")] #15 wrong formatted codes
@@ -342,18 +343,6 @@ bfa[-ind.rings, c("nest.id", "parent1","sp.code1")]
 bfa[bfa$nest.id %in% "2014-WfP-112",] #this nest has wrong parent2 code...in captures it is B.R|R.M, Issue3
  #in this example both parents are present
 #--------------------------------------------
-#count where both parents are present
-
-for(i in 1:length(bfa$year)){
-  if(!is.na(bfa$parent1[i]) & !is.na(bfa$parent2[i])){
-    bfa$parent[i] <- 4
-  }else{
-    bfa$parent[i] <- NA
-  }
-}
-
-bfa[bfa$parent %in% "4",]
-bfa[!bfa$parent %in% "4",]
 
 
 #-----------------------------check issue 3------------------------
@@ -493,6 +482,10 @@ ids.final[ids.final$parent1 == ids.final$parent2,]
 head(br[br$parent1 == br$parent2 & !is.na(br$parent1),])
 
 
+#-------change errors:------------
+bfa[bfa$nest.id %in% "2013-KiP-36",]
+cap[cap$nest.id %in% "2013-KiP-36",]
+ids.final[ids.final$nest.id %in% "2013-KiP-36",]
 #ignore these 61 cases? See how many nests in total remain in brood fates if these are ignored
 a<-setdiff(nestid.ring.unique.bfa, ids.cap_bref)
 b<-strsplit(a, "_")
@@ -531,16 +524,86 @@ bfa[bfa$nest.id %in% ignore, "bf.quality"] <- "poor quality"
 #------------2. Add individual sexes-------------
 names(sex)
 
+bfa$mol_sex.p1<-NA
+bfa$mol_sex.p2<-NA
+
+#a) add mol sex to individuals with rings FH...
 letters<-"^[FH0-9]*$"
 for(i in 1:length(bfa$year)){ #modification for MAD, search for rings of individuals with code but no ring
-  if(!is.na(bfa$parent1[i]) & !grepl(pattern=letters, bfa$parent1[i], perl=T)){
+  print(i)
+  if(!is.na(bfa$parent1[i]) & grepl(pattern=letters, bfa$parent1[i], perl=T)){
     bfa$mol_sex.p1[i] <- sex$sex[match(bfa$parent1[i], sex$ring)]
   }
-  if(!is.na(bfa$parent2[i]) & !grepl(pattern=letters, bfa$parent2[i], perl=T)){
+  if(!is.na(bfa$parent2[i]) & grepl(pattern=letters, bfa$parent2[i], perl=T)){
     bfa$mol_sex.p2[i] <- sex$sex[match(bfa$parent2[i], sex$ring)]
   }
 }
-#-----------------------------------------------------------------
+
+#b) add mol sex to individuals with no rings
+bfa$sp.new.code.p1 <- paste(bfa$species, bfa$new.code.p1, sep="-")
+bfa$sp.new.code.p2 <- paste(bfa$species, bfa$new.code.p2, sep="-")
+sex$sp.code <- paste(sex$species, sex$ring, sep="-")
+
+for(i in 1:length(bfa$year)){ #modification for MAD, search for rings of individuals with code but no ring
+  
+  if(is.na(bfa$mol_sex.p1[i]) & !is.na(bfa$new.code.p1[i])){
+    bfa$mol_sex.p1[i] <- sex$sex[match(bfa$sp.new.code.p1[i], sex$sp.code)]
+    print(i)
+  }
+  if(is.na(bfa$mol_sex.p2[i]) & !is.na(bfa$new.code.p2[i])){
+    bfa$mol_sex.p2[i] <- sex$sex[match(bfa$sp.new.code.p2[i], sex$sp.code)]
+  }
+}
+
+
+
+
+#---debug 2.--------------------------------------------------------
+head(bfa)
+str(bfa[is.na(bfa$mol_sex.p1),]) #372 NAs in mol_sex.p1, after sp.code (b) 328 NAs
+str(bfa[is.na(bfa$mol_sex.p2),]) #822 NAs in mol_sex.p2, after sp.code (b) 815 NAs
+str(bfa[is.na(bfa$mol_sex.p2) & is.na(bfa$mol_sex.p1),]) #334 NAs in both molp1 and molp2, after sp.code (b) 290 NAs
+
+#--------------------------------------------------
+
+#3. Create parent column
+
+#Both parents are present
+
+for(i in 1:length(bfa$year)){
+  if(!is.na(bfa$parent1[i]) & !is.na(bfa$parent2[i])){
+    bfa$parent[i] <- 4
+  }else{
+    bfa$parent[i] <- NA
+  }
+}
+
+bfa[bfa$parent %in% "4",]
+bfa[!bfa$parent %in% "4",]
+
+table(bfa$mol_sex.p1)
+table(bfa$mol_sex.p2)
+
+#One parent present
+for(i in 1:length(bfa$year)){
+  if(!is.na(bfa$parent1[i]) & is.na(bfa$parent2[i])){
+    if(bfa$mol_sex.p1[i] %in% "M"){
+      bfa$parent[i] <- 3
+    }else{
+      if(bfa$mol_sex.p1[i] %in% "F"){
+        bfa$parent[i] <- 2
+      }
+    }
+  }else{
+    bfa$parent[i] <- NA
+  }
+}
+
+#---------------------debug
+bfa[is.na(bfa$parent1) & !is.na(bfa$parent2),]
+head(bfa)
+table(bfa$year)
+#--------------------------
 
 #----------------------WRITE STD FILE
 getwd()
