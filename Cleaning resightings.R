@@ -1,26 +1,26 @@
-#29/04/2015
-#2nd log 30/04/2015 finished until line 143
-#3rd log 01/05/2015
-#4th log 04/05/2015 up to 286
-#5th log 05/05/2015 from 286 till the end, wrote std file
-
-
+#23/03/2016
+#2nd log 23/03/2016 updated files for Madagascar, run code again
 
 #Cleaning code to generate Std Resigthings
 
-getwd()
-setwd("F:/Plovers/KP data management/Maintenance/Cleaning data code/Applying code to populations/Maio 2007-2014/input")
+setwd("F:/Plovers/3rd Chapter/input/Madagascar")
+
 csvfiles <- list.files(path = ".", pattern='*\\.csv$', all.files=TRUE)
 csvfiles
+
 
 import.list <- lapply(csvfiles, read.csv, header = TRUE, as.is=TRUE, na.strings=c("NA"," ",""))
 
 
-str(import.list)
+#str(import.list)
 ls()
 
 working.list <- import.list
-names(working.list) <- c("bre","bfa","cap","sex","nes","res","surv")
+#Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
+#Maio
+names(working.list) <- c("bf","br","cap","sex","ne","re")
+
+
 attach(working.list)
 
 
@@ -29,9 +29,11 @@ attach(working.list)
 
 #Resightings:
 #clean code rings
-res<-re
+res<-re[,c(1:14)]
 names(res)
-more.11chr <- res[nchar(res$code)!=7, c("year","site","sex","date","time","code","observer","comment")] #15 wrong formatted codes
+head(res)
+
+more.11chr <- res[nchar(res$code)!=7, c("year","site","sex","date","time","code","observer","comment")] 
 more.11chr[order(more.11chr$code),]
 
 #Fix resightings of codes in wrong format e.g. WRML
@@ -65,7 +67,7 @@ more.11chr[order(more.11chr$code),]
 #--------------substitute new.code-----------------
 res$code <- res$new.code
 names(res)
-res<-res[,-16]
+res<-res[,-15]
 
 #------------------------------
 #Regular expressions for correct codes:
@@ -101,16 +103,20 @@ res[res$code %in% gs$code,]
 res$code[res$code %in% gs$code] <- gsub("0", "O", res$code[res$code %in% gs$code])
 
 gs<-res[ind.g,] #changes should be seen on same set of codes 
-res[c(4350,4351), "code"] <- gsub("O", "0", res$code[c(4350,4351)])
+res[c(4350,4351), "code"] <- gsub("O", "0", res$code[c(4350,4351)]) #change back the ones with numbers
 
 #############################################################################
 
 
-#Regular expressions for codes with !
+#Regular expressions for codes with ! or \
 regexp <- "[!]"
+regexp2 <- "\\\\"
 ind.exc <- grep(pattern=regexp, res$code, perl=T)
+ind.esc <- grep(pattern=regexp2, res$code, perl=T)
 
 exc <- res[ind.exc,]
+
+esc <- res[ind.esc,]
 
 #CHANGES TO FILE TO CREATE STD FILE -------------------------------------------------------
 
@@ -118,11 +124,15 @@ exc <- res[ind.exc,]
 res$code[res$code %in% exc$code] <- gsub("!", "\\|", res$code[res$code %in% exc$code])
 exc <- res[ind.exc,]
 
+res$code[res$code %in% esc$code] <- gsub("\\\\", "\\|", res$code[res$code %in% esc$code])
+res[ind.esc,]
+
 ##############################################################################
 
 #Regular expression for spaces
 regexp <- "([A-Z]+)([\\s]+)|([\\s]+)([A-Z]+)|([\\s]+)([\\-]+)"
 ind.blank <- grep(pattern=regexp, res$code, perl=T)
+res[ind.blank,]
 
 regexp2 <- "([0-9]+)" #only strings that start with numbers
 #regexp3 <- "(^[a-zA-Z]+[^{|(\\!,:;???\")}@-]+)" #match only letters and punctuation characters
@@ -140,17 +150,17 @@ res[ind.nonumb, ]
 
 #ind.onlyletters <- grep(pattern=regexp3, res$code, perl=T)
 #res[ind.onlyletters, "code"]
-
-ind.joint <- setdiff(ind.blank, ind.nonumb)
-res[ind.joint,]
-
-blanks <- res[ind.joint,]
-
+# 
+# ind.joint <- setdiff(ind.blank, ind.nonumb)
+# res[ind.joint,]
+# 
+# blanks <- res[ind.joint,]
+blanks <- res[ind.blank,]
 #CHANGES TO FILE------------------------------------------------------
 #get rid of blank spaces
 res$code[res$code %in% blanks$code] <- gsub("\\s", "", res$code[res$code %in% blanks$code])
-blanks <- res[ind.joint,]
-
+# blanks <- res[ind.joint,]
+res[ind.blank,]
 #################################################################################
 #Replace commas with dots
 
@@ -162,7 +172,7 @@ commas <- res[ind.comma,]
 
 #changes to file----------------------------
 #get rid of comma
-res$code[res$code %in% commas$code] <- gsub(",", ".", res$code[res$code %in% commas$code])
+# res$code[res$code %in% commas$code] <- gsub(",", ".", res$code[res$code %in% commas$code])
 
 #-----------------------------------
 #check again:
@@ -173,10 +183,10 @@ more.11chr[order(more.11chr$code),]
 regexp1 <- "([RGLBYOWXMSsP]{1,2})\\.([RGLBYOWXMSsP]{1,2})\\|([RGLBYOWXMSsP]{1,2})\\.([RGLBYOWXMSsP]{1,2})$"
 ind.correct<-grep(pattern = regexp1, res$code, perl=TRUE)
 correct.code <- res[ind.correct,]
-str(correct.code) #6735
-str(res[-ind.correct,]) #33 ones with K, numbers (already checked), or ?/incomplete
-
-#nothing more can be fixed in resightings from Madagascar 16/03/2016
+str(correct.code) #7773
+str(res[-ind.correct,]) #84 ones with K, numbers (already checked), or ?/incomplete
+res[-ind.correct,"code"]
+#nothing more can be fixed in resightings from Madagascar 23/03/2016
 
 #-----------------------------------
 # ##############################################################################

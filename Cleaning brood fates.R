@@ -6,6 +6,7 @@
 #2nd log 18/03/2016 Checking list of nests found with non-matching rings in captures or birdRef
 #3rd log 21/03/20126 fixed duplicate search, produced list of 52 nests that are problematic 
 #                   Decided to flag these nests as poor quality brood care, and still include them in bschedule data
+#4th log 22/03/2016 finished coding to change brood fate format, problematic nests still need attention
 
 #------------------------------------------------------------------------
 #Madagascar
