@@ -986,7 +986,7 @@ ids.final$end_date.r <- as.character(ids.final$end_date.r)
 #-----debug------
 head(ids.final)
 head(ids.final[!is.na(ids.final$clutch_size),])
-str(ids.final)#1756
+str(ids.final)#1756, 1999 after update
 #---------------------
 
 #         iv. Broodfates (earliest and latest dates when male or female was seen)

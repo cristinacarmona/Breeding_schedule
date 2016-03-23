@@ -23,7 +23,7 @@ import.list <- lapply(csvfiles, read.csv, header = TRUE, as.is=TRUE, na.strings=
 ls()
 
 working.list <- import.list
-names(working.list) <- c("bf","br","cap","sex","sex2","ne","re2","re")
+names(working.list) <- c("bf","br","cap","sex","ne","re")
 
 #re-load captures file
 # choose.cap<-csvfiles[3]
@@ -82,8 +82,8 @@ paste(substr(more.11chr$code[41], 1,1),".",
       substr(more.11chr$code[41], 4,4), sep="")
 
 #--------------------------debug
-res[nchar(res$new.code)!=7, c("year","site","sex","date","time","new.code","observer","comment")] #15 wrong formatted codes
-more.11chr[order(more.11chr$code),]
+# res[nchar(res$new.code)!=7, c("year","site","sex","date","time","new.code","observer","comment")] #15 wrong formatted codes
+# more.11chr[order(more.11chr$code),]
 
 #--------------substitute new.code-----------------
 bfa$parent1 <- bfa$new.code.p1
@@ -91,7 +91,7 @@ bfa$parent2 <- bfa$new.code.p2
 
       #check other errors:
 more.11chr <- bfa[nchar(bfa$parent1)!=7 | nchar(bfa$parent2)!=7, c("year","site","date","parent1","parent2","observer","comments")] #15 wrong formatted codes
-str(more.11chr[order(more.11chr$parent1),]) #1314 obs, 1228 after correction
+str(more.11chr[order(more.11chr$parent1),]) #1314 obs, 1264 after correction
 
   #subset data to Andavadoaka
 table(bfa$site)
@@ -99,12 +99,12 @@ bfa <- bfa[bfa$site %in% "Andavadoaka",]
 
 #check again other errors:
 more.11chr <- bfa[nchar(bfa$parent1)!=7 | nchar(bfa$parent2)!=7, c("year","site","date","parent1","parent2","observer","comments")] #15 wrong formatted codes
-str(more.11chr[order(more.11chr$parent1),]) #1314 obs, 1228 after correction...793 after subsetting only to Andavadoaka
+str(more.11chr[order(more.11chr$parent1),]) #1314 obs, 1228 after correction...829 after subsetting only to Andavadoaka
 table(more.11chr$parent1)
 table(more.11chr$parent2)
 
-bfa[bfa$parent1 %in% c("?","No","UNIDENTIFIED","UB","UNK","UR"), "parent1"] <- NA
-bfa[bfa$parent2 %in% c("?","??","No","NO","UB","UNK","UR"), "parent2"] <- NA
+#bfa[bfa$parent1 %in% c("?","No","UNIDENTIFIED","UB","UNK","UR"), "parent1"] <- NA
+#bfa[bfa$parent2 %in% c("?","??","No","NO","UB","UNK","UR"), "parent2"] <- NA
 
 
 ####################################################################
@@ -183,7 +183,7 @@ bfa[ind.comma2,]
 #-----------------------------------
 #check again
 more.11chr <- bfa[nchar(bfa$parent1)!=7 | nchar(bfa$parent2)!=7, c("year","site","date","parent1","parent2","observer","comments")] #15 wrong formatted codes
-str(more.11chr[order(more.11chr$parent1),]) #1314 obs, 1228 after correction...793 after subsetting only to Andavadoaka
+str(more.11chr[order(more.11chr$parent1),]) #1314 obs, 1228 after correction...826 after subsetting only to Andavadoaka
 table(more.11chr$parent1)
 table(more.11chr$parent2)
 
@@ -209,7 +209,7 @@ cap$sp.sex.code <- paste(cap$species,"_", cap$code, "-",cap$sex, sep="")
 # 
 # library(stringr)
 #unique.code.ring<- unique(cap$code.ring)
-unique.code.ring<- unique(cap$sp.code.ring[cap$site %in% "Andavadoaka"]) #3017 unique sp.code.ring
+unique.code.ring<- unique(cap$sp.code.ring[cap$site %in% "Andavadoaka"]) #3233 unique sp.code.ring
 
 lookdup <-strsplit(unique.code.ring, "-")
 
@@ -227,10 +227,10 @@ pat0<-"X"
 
 x0 <- ldup[!str_detect(ldup$code, pattern=pat0),] #allow no Xs in codes (MAD)
 
-str(x) #CEUTA: 529; 555; 530
+#str(x) #CEUTA: 529; 555; 530
 #Mad: 3015
 
-str(x0) #1787
+str(x0) #1787, 1911 after update
 x0[order(x0$code),]
 # 
 library(stringr) 
@@ -248,7 +248,7 @@ x0$sp.code <- paste(x0$sp, x0$code, sep="-")
 
 ind <- which(duplicated(x0$sp.code) | duplicated(x0$sp.code, fromLast=TRUE))
 str(x0[ind,]) #MAIO 34; 38; 36
-#               #MAD: 291
+#               #MAD: 308
 # x1 <- x[ind,]
 x1 <- x0[ind,]
 x1[order(x1$code),]
@@ -261,7 +261,7 @@ x1[order(x1$code),]
 # x1[order(x1$sp_code),]
 # 
 dupl <- x1 #List of rings with duplicated codes 
-str(dupl)
+str(dupl) #308 duplicates
 
 #---------------------------------------------------------------------------
 #previous way of dealing with duplicates (includes ambiguous codes)
@@ -290,15 +290,15 @@ str(dupl)
 #-----------------------------------------------------------------------------
 
 #----------
-sp_code.dupl<-unique(dupl$sp.code) #517; 170 only Andavadoaka; 95 omitting ambiguous
+sp_code.dupl<-unique(dupl$sp.code) #517; 170 only Andavadoaka; 103 omitting ambiguous
 
 
 #b) omit duplicates from captures-------
 names(cap)
-str(cap) #5372, 3572 only Andavadoaka
+str(cap) #5372, 3868 only Andavadoaka
 
 cap.nodupl <- cap[!cap$sp.code.ring %in% dupl$sp.code.ring,]
-str(cap.nodupl) #1985 only andavadoaka
+str(cap.nodupl) #3868 only andavadoaka
 
 cap.nodupl$sp.code <- paste(cap.nodupl$species, cap.nodupl$code, sep="-")
 
@@ -315,7 +315,7 @@ bfa[ind.rings2, "parent2"]
 bfa[-ind.rings2, "parent2"]
 
 #d) Replace code with ring only on those where no ring was present already in parent1 and parent2---------
-#bfa2<-bfa
+bfa2<-bfa
 bfa<-bfa2
 
 table(bfa$species)
@@ -354,12 +354,12 @@ cap.nests <- unique(cap$nest.id)
 
 bf.nests<- unique(bfa$nest.id)
 
-ids.check1<-intersect(cap.nests, bf.nests) #506 nests
+ids.check1<-intersect(cap.nests, bf.nests) #506 nests; 573 after update
 
 br.nests<-unique(ids.final$nest.id)
-ids.check2<-intersect(bf.nests, br.nests)#358
+ids.check2<-intersect(bf.nests, br.nests)#358; 440 after update
 
-ids.check<-bf.nests[bf.nests%in%ids.check1 | bf.nests %in% ids.check2]#510
+ids.check<-bf.nests[bf.nests%in%ids.check1 | bf.nests %in% ids.check2]#510; 571 after update
 
 #check that parents new rings match the nest in captures or BirdRef
 
@@ -368,17 +368,17 @@ bfa$nestid.ring2<-paste(bfa$nest.id, bfa$parent2, sep="_")
 
 nestid.ringall1<-bfa[!is.na(bfa$parent1) & bfa$nest.id %in% ids.check, "nestid.ring1"]
 nestid.ringall2<-bfa[!is.na(bfa$parent2) & bfa$nest.id %in% ids.check, "nestid.ring2"]
-nestid.ring.unique.bfa<-c(unique(nestid.ringall1), unique(nestid.ringall2)) #471 list of unique nests with rings associated to it in brood fates
+nestid.ring.unique.bfa<-c(unique(nestid.ringall1), unique(nestid.ringall2)) #471 list of unique nests with rings associated to it in brood fates; 618 after update
 
 #add ids from birdreference as some birds were not captured but id was known
-#[used as parallel code from extract_breeding schedule to use ids.final]
+#[used in parallel code from extract_breeding schedule to use ids.final]
 ids.final$nest.id.ring <-paste(ids.final$nest.id, ids.final$ring, sep="_")#from extract_breedingschedule code up to line 950
 ids.final$nest.id.code <-paste(ids.final$nest.id, ids.final$code, sep="-")
 nest.idring.bref<-ids.final$nest.id.ring[!is.na(ids.final$ring)
-                                     & ids.final$nest.id %in% ids.check]#428
+                                     & ids.final$nest.id %in% ids.check]#428; 554 after update
 nest.idcode.bref<-ids.final$nest.id.code[is.na(ids.final$ring) & !is.na(ids.final$code) &
-                                           ids.final$nest.id %in% ids.check] #50
-unique(nest.idcode.bref) #50 same
+                                           ids.final$nest.id %in% ids.check] #50; 52 after update
+unique(nest.idcode.bref) #52 same
 
 #add ids from captures
 cap.nodupl$nest.id <- paste(cap.nodupl$year, cap.nodupl$species, cap.nodupl$nest, sep="-")
@@ -387,8 +387,8 @@ cap.nodupl$nest.id.ring<-paste(cap.nodupl$nest.id, cap.nodupl$ring, sep="_")
 cap.nodupl$nest.id.code <-paste(cap.nodupl$nest.id, cap.nodupl$code, sep="-")
 
 nestidring.cap<-cap.nodupl$nest.id.ring[!is.na(cap.nodupl$ring) 
-                                        & cap.nodupl$nest.id %in% ids.check]#452
-nest.id.ring.cap<-unique(nestidring.cap)#440
+                                        & cap.nodupl$nest.id %in% ids.check]#452; 520 after update
+nest.id.ring.cap<-unique(nestidring.cap)#440, 509 after update
 
 nest.id.code.cap<-cap.nodupl$nest.id.code[!is.na(cap.nodupl$code) &
                                             is.na(cap.nodupl$ring) &
@@ -396,14 +396,14 @@ nest.id.code.cap<-cap.nodupl$nest.id.code[!is.na(cap.nodupl$code) &
 
 ids.cap_bref1<-c(nest.idcode.bref, nest.idring.bref, nest.id.ring.cap,
                     nest.id.code.cap)
-ids.cap_bref<-unique(ids.cap_bref1) #536
+ids.cap_bref<-unique(ids.cap_bref1) #536, 640 after update
 
 
 
-setdiff(ids.cap_bref, nestid.ring.unique.bfa) #145 in cap and bref but not in bfa (many NAs), 
+setdiff(ids.cap_bref, nestid.ring.unique.bfa) #145 in cap and bref but not in bfa (many NAs), 170 after update 
 
 setdiff(nestid.ring.unique.bfa, ids.cap_bref) #67 in bfa but not in cap or bref
-#61 with new duplicates assignment
+#61 with new duplicates assignment; 131 after update
 
 # [1] "2013-KiP--108-FH68899"
 # [2] "2013-KiP--107-FH69285"
@@ -470,10 +470,10 @@ setdiff(nestid.ring.unique.bfa, ids.cap_bref) #67 in bfa but not in cap or bref
 
 #-------------debug-------------------------
 #check each nest:
-bfa[bfa$nest.id %in% "2014-WfP-112",]
-cap.nodupl[cap.nodupl$nest.id %in% "2014-WfP-112",]
-cap[cap$nest.id %in% "2015-KiP-104",]
-ids.final[ids.final$nest.id %in% "2015-KiP-104",]
+bfa[bfa$nest.id %in% "2013-KiP--135",]
+cap.nodupl[cap.nodupl$nest.id %in% "2013-KiP--135",]
+cap[cap$nest.id %in% "2013-KiP--135",]
+ids.final[ids.final$nest.id %in% "2013-KiP--135",]
 
 br$nest.id<-paste(br$year, br$species, br$nest, sep="-")
 br[br$nest.id %in% "2014-WfP-106",]
@@ -495,13 +495,13 @@ c <- ldply(b) #turn list into two columns
 colnames(c) <- c("nest.id","ring") 
 
 ignore <- c$nest.id
-unique(ignore) #52 nests
+unique(ignore) #52 nests; update 117 nests
 
 str(bfa[!bfa$nest.id %in% ignore,]) #857 observations would remain
 unique(bfa[!bfa$nest.id %in% ignore,"nest.id"]) #494 nests included
 
 str(bfa[bfa$nest.id %in% ignore & bfa$observer %in% "LEP",]) #129 observations would be ignored
-unique(bfa[bfa$nest.id %in% ignore,"nest.id"]) #56 nests ignored
+unique(bfa[bfa$nest.id %in% ignore,"nest.id"]) #56 nests ignored/117 after update
 
 str(ids.final[ids.final$nest.id %in% ignore,]) #44 in ignore for ids.final
 str(ids.final[!ids.final$nest.id %in% ignore,]) #1712 nests would remain in ids.final
@@ -571,48 +571,75 @@ str(bfa[is.na(bfa$mol_sex.p2) & is.na(bfa$mol_sex.p1),]) #334 NAs in both molp1 
 
 #3. Create parent column
 
-#Both parents are present
-
-for(i in 1:length(bfa$year)){
-  if(!is.na(bfa$parent1[i]) & !is.na(bfa$parent2[i])|
-       !is.na(bfa$mol_sex.p1[i]) & !is.na(bfa$mol_sex.p2[i])){
-    bfa$parent[i] <- 4
-  }
-}
-
-bfa[bfa$parent %in% "4",]
-bfa[!bfa$parent %in% "4",]
+bfa$parent <-NA
 
 table(bfa$mol_sex.p1)
 table(bfa$mol_sex.p2)
 
-#One parent present
-for(i in 1:length(bfa$year)){
-  print(i)
-  if(!is.na(bfa$mol_sex.p1[i]) & is.na(bfa$mol_sex.p2[i])){
-    if(bfa$mol_sex.p1[i] %in% "M"){
-      bfa$parent[i] <- 3
-    }else{
-    if(bfa$mol_sex.p1[i] %in% "F"){
-        bfa$parent[i] <- 2
-      }
-    }
-  }else{
-    if(!is.na(bfa$mol_sex.p2[i]) & is.na(bfa$mol_sex.p1[i])){
-      if(bfa$mol_sex.p2[i] %in% "M"){
-        bfa$parent[i] <- 3
-      }else{
-        if(bfa$mol_sex.p2[i] %in% "F"){
-          bfa$parent[i] <- 2
-        }
-      }
-    }
-  }
-}
+table(bfa$new.code.p1, useNA="always")
+table(bfa$new.code.p2, useNA="always")
+bfa$new.code.p2[bfa$new.code.p2 %in% c("No","NO")] <- NA
+
+#Both parents are present
+bfa[!is.na(bfa$parent1) & !is.na(bfa$parent2) |
+      !is.na(bfa$new.code.p1) & !is.na(bfa$new.code.p2) |
+      !is.na(bfa$mol_sex.p1) & !is.na(bfa$mol_sex.p2), c("parent1","parent2","new.code.p1","new.code.p2", "mol_sex.p1","mol_sex.p2","parent")]
+
+bfa$parent[!is.na(bfa$parent1) & !is.na(bfa$parent2) |
+             !is.na(bfa$new.code.p1) & !is.na(bfa$new.code.p2) |
+             !is.na(bfa$mol_sex.p1) & !is.na(bfa$mol_sex.p2)]<- 4
+
+#At least one parent with mol_sex present
+#Only male present
+bfa[!bfa$parent %in% 4 & !is.na(bfa$mol_sex.p1) & is.na(bfa$mol_sex.p2)
+    & bfa$mol_sex.p1 %in% "M",]
+
+bfa$parent[!bfa$parent %in% 4 & !is.na(bfa$mol_sex.p1) & is.na(bfa$mol_sex.p2)
+    & bfa$mol_sex.p1 %in% "M"] <- 3
+
+#Only female present
+bfa[!bfa$parent %in% 4 & !is.na(bfa$mol_sex.p1) & is.na(bfa$mol_sex.p2)
+    & bfa$mol_sex.p1 %in% "F",]
+
+bfa$parent[!bfa$parent %in% 4 & !is.na(bfa$mol_sex.p1) & is.na(bfa$mol_sex.p2)
+           & bfa$mol_sex.p1 %in% "F"] <- 2
+
+# FOR LOOP Didnt work, replaced with code above
+# #--for debugging
+# i<-1066
+# #----
+# for(i in 1:length(bfa$year)){
+#   print(i)
+#   if(!is.na(bfa$mol_sex.p1[i]) & is.na(bfa$mol_sex.p2[i])){
+#     if(bfa$mol_sex.p1[i] %in% "M"){
+#       bfa$parent[i] <- 3
+#     }else{
+#     if(bfa$mol_sex.p1[i] %in% "F"){
+#         bfa$parent[i] <- 2
+#       }
+#     }
+#   }else{
+#     if(!is.na(bfa$mol_sex.p2[i]) & is.na(bfa$mol_sex.p1[i])){
+#       if(bfa$mol_sex.p2[i] %in% "M"){
+#         bfa$parent[i] <- 3
+#       }else{
+#         if(bfa$mol_sex.p2[i] %in% "F"){
+#           bfa$parent[i] <- 2
+#         }
+#       }
+#     }
+#   }
+# }
+
+
 #---------------------debug
 table(bfa$parent, useNA="always")
+#Values with for loop
 #     2    3    4 <NA> 
 #   149  444  168  225 
+#New values with no For loop:
+#    2    3    4 <NA> 
+#   123  448  269  254 
 
 bfa[is.na(bfa$parent1) & !is.na(bfa$parent2),]
 head(bfa)
@@ -626,6 +653,13 @@ bfa$no_chicks <- apply(bfa[,c("chick1","chick2","chick3")], 1, function(x) lengt
 
 #---------debug----
 head(bfa)
+tail(bfa)
+
+
+rownames(bfa) <- c(1:length(bfa$year))
+bfa[1090,]
+
+bfa[,c("parent1","parent2","mol_sex.p1","mol_sex.p2", "parent")]
 #----------------------
 
 
