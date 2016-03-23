@@ -7,7 +7,7 @@
 #3rd log 21/03/20126 fixed duplicate search, produced list of 52 nests that are problematic 
 #                   Decided to flag these nests as poor quality brood care, and still include them in bschedule data
 #4th log 22/03/2016 finished coding to change brood fate format, problematic nests still need attention
-
+#5th log 23/03/2016 Re-running after updating Mad files
 #------------------------------------------------------------------------
 #Madagascar
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
@@ -403,7 +403,7 @@ ids.cap_bref<-unique(ids.cap_bref1) #536, 640 after update
 setdiff(ids.cap_bref, nestid.ring.unique.bfa) #145 in cap and bref but not in bfa (many NAs), 170 after update 
 
 setdiff(nestid.ring.unique.bfa, ids.cap_bref) #67 in bfa but not in cap or bref
-#61 with new duplicates assignment; 131 after update
+#61 with new duplicates assignment; 131 after update; 99 when ran at home?
 
 # [1] "2013-KiP--108-FH68899"
 # [2] "2013-KiP--107-FH69285"
@@ -484,10 +484,13 @@ head(br[br$parent1 == br$parent2 & !is.na(br$parent1),])
 
 
 #-------change errors:------------
+#Errors that can be corrected are in BirdRef not here...
 bfa[bfa$nest.id %in% "2013-KiP-36",]
 cap[cap$nest.id %in% "2013-KiP-36",]
 ids.final[ids.final$nest.id %in% "2013-KiP-36",]
+#----------------------------------------------------------------
 #ignore these 61 cases? See how many nests in total remain in brood fates if these are ignored
+#decided to flag them as poor quality data rather than omit them
 a<-setdiff(nestid.ring.unique.bfa, ids.cap_bref)
 b<-strsplit(a, "_")
 library(plyr)
@@ -515,7 +518,7 @@ c <- ldply(b) #turn list into two columns
 colnames(c) <- c("nest.id","ring") 
 
 ignore <- c$nest.id
-unique(ignore) #52 nests
+unique(ignore) #52 nests; 88 after update
 
 bfa$bf.quality <- NA
 bfa[bfa$nest.id %in% ignore, "bf.quality"] <- "poor quality"
@@ -596,6 +599,8 @@ bfa[!bfa$parent %in% 4 & !is.na(bfa$mol_sex.p1) & is.na(bfa$mol_sex.p2)
 
 bfa$parent[!bfa$parent %in% 4 & !is.na(bfa$mol_sex.p1) & is.na(bfa$mol_sex.p2)
     & bfa$mol_sex.p1 %in% "M"] <- 3
+bfa$parent[!bfa$parent %in% 4 & is.na(bfa$mol_sex.p1) & !is.na(bfa$mol_sex.p2)
+           & bfa$mol_sex.p2 %in% "M"] <- 3
 
 #Only female present
 bfa[!bfa$parent %in% 4 & !is.na(bfa$mol_sex.p1) & is.na(bfa$mol_sex.p2)
@@ -603,6 +608,12 @@ bfa[!bfa$parent %in% 4 & !is.na(bfa$mol_sex.p1) & is.na(bfa$mol_sex.p2)
 
 bfa$parent[!bfa$parent %in% 4 & !is.na(bfa$mol_sex.p1) & is.na(bfa$mol_sex.p2)
            & bfa$mol_sex.p1 %in% "F"] <- 2
+bfa$parent[!bfa$parent %in% 4 & is.na(bfa$mol_sex.p1) & !is.na(bfa$mol_sex.p2)
+           & bfa$mol_sex.p2 %in% "F"] <- 2
+
+#one parent present of unknown sex
+bfa[!bfa$parent %in% c(4,3,2) & !is.na(bfa$new.code.p1) & is.na(bfa$mol_sex.p1) & is.na(bfa$new.code.p2),]
+bfa$parent[!bfa$parent %in% c(4,3,2) & !is.na(bfa$new.code.p1) & is.na(bfa$mol_sex.p1) & is.na(bfa$new.code.p2)] <-1
 
 # FOR LOOP Didnt work, replaced with code above
 # #--for debugging
@@ -640,11 +651,18 @@ table(bfa$parent, useNA="always")
 #New values with no For loop:
 #    2    3    4 <NA> 
 #   123  448  269  254 
+#AFTER UPDATE:
+#     2    3    4 <NA>  parent with no sex present(1)
+#   100  433  337  88   136
 
 bfa[is.na(bfa$parent1) & !is.na(bfa$parent2),]
 head(bfa)
 table(bfa$year)
-bfa[is.na(bfa$parent),c("parent1","parent2","new.code.p1","new.code.p2","mol_sex.p1", "mol_sex.p2", "parent")]
+bfa[is.na(bfa$parent),c("year","parent1","parent2","new.code.p1","new.code.p2","mol_sex.p1", "mol_sex.p2", "parent")]
+
+bfa[696,c("parent1","parent2","new.code.p1","new.code.p2","mol_sex.p1", "mol_sex.p2", "parent")]
+
+
 #--------------------------
 
 #4. Add number of chicks
@@ -661,11 +679,10 @@ bfa[1090,]
 
 bfa[,c("parent1","parent2","mol_sex.p1","mol_sex.p2", "parent")]
 #----------------------
-
-
+names(bfa[,c(1:18,29:42)])
 
 #----------------------WRITE STD FILE
 getwd()
 setwd("F:/Plovers/3rd Chapter/input/Madagascar/")
-bfa.write <- bfa
+bfa.write <- bfa[,c(1:18,29:42)]
 write.csv(bfa.write, "Broodfates_Madagascar_stdfile_CCIMarch2016.csv")
