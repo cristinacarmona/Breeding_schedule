@@ -37,6 +37,8 @@
 #17/03/2016 3rd log - Continue from 663, clear errors found in BirdRef, created Cleaning brood fates.R
 #18/03/2016 4th log - Modified line 393....
 #21/03/2016 5th log - Issue2 - fixed duplicates (also duplicates need to be modified only to Andavadoaka and omit XX ambiguous codes!)
+#24/03/2016 6th log - Stopped this code, cleaning bird ref first, 
+                    #Issue 4 OMIT JUVENILES???? 
 
 
 #---------------------------------------------------------------
@@ -256,7 +258,7 @@ table(cap$age)
 # cap$code.ring <- paste(cap$code,cap$ring, sep="-")
 # cap$sex.code <- paste(cap$code, cap$sex, sep="-")
   
-  #a) find duplicates in Mad:
+  #a) find duplicates in Mad: OMIT JUVENILES???? 24/03/2016
 table(cap$species)
 cap$sp.code.ring <- paste(cap$species,"-", cap$code,"-", cap$ring, sep="")
 cap$sp.sex.code <- paste(cap$species,"_", cap$code, "-",cap$sex, sep="")

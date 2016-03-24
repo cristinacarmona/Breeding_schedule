@@ -31,14 +31,14 @@ getwd()
 #setwd("F:/Plovers/KP data management/Maintenance/Cleaning data code/Applying code to populations/Maio 2007-2015/input")
 #setwd("C:/Plovers/KP data management/Maintenance/Cleaning data code/Applying code to populations/Maio 2007-2015/input")
 
-csvfiles <- list.files(path = ".", pattern='*\\.csv$', all.files=TRUE)
-csvfiles
-
-import.list <- lapply(csvfiles, read.csv, header = TRUE, as.is=TRUE, na.strings=c("NA"," ",""))
-
-working.list <- import.list
-names(working.list) <- c("bre","bfa","cap","sex","nes","res")
-attach(working.list)
+# csvfiles <- list.files(path = ".", pattern='*\\.csv$', all.files=TRUE)
+# csvfiles
+# 
+# import.list <- lapply(csvfiles, read.csv, header = TRUE, as.is=TRUE, na.strings=c("NA"," ",""))
+# 
+# working.list <- import.list
+# names(working.list) <- c("bre","bfa","cap","sex","nes","res")
+# attach(working.list)
 
 #attach std files
 # setwd("F:/Plovers/KP data management/Maintenance/Cleaning data code/Applying code to populations/Maio 2007-2014/output")
@@ -51,7 +51,24 @@ attach(working.list)
 # names(working.list.2) <- c("cap.std","nes.std","res.std")
 # attach(working.list.2)
 
+#Madagascar
+setwd("F:/Plovers/3rd Chapter/input/Madagascar")
 
+csvfiles <- list.files(path = ".", pattern='*\\.csv$', all.files=TRUE)
+csvfiles
+
+
+import.list <- lapply(csvfiles, read.csv, header = TRUE, as.is=TRUE, na.strings=c("NA"," ",""))
+
+
+#str(import.list)
+ls()
+
+working.list <- import.list
+#Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
+#Maio
+names(working.list) <- c("bf2","br","bf","cap","sex","ne","re")
+attach(working.list)
 #--------------------------------------------------------------------------------
 #I Preparation of data consistency and codes
 
@@ -59,6 +76,8 @@ attach(working.list)
 bre<-br[br$site %in% "Andavadoaka",]
 
 table(bre$year)
+head(bre)
+tail(bre)
 #bre$year[bre$year %in% "20014"] <- "2014" #correct wrong year 20014
 
 
@@ -75,10 +94,10 @@ names(bre)
 # bre.f$sex <- "F"
 
 bre.1 <- bre[,c(1:6, 8:13)] #choose only males
-colnames(bre.1)[6] <- "parent1or2"
+colnames(bre.1)[c(6,11)] <- c("parent1or2","species")
 
 bre.2 <- bre[,c(1:5,7:13)] #choose only females
-colnames(bre.2)[6] <- "parent1or2"
+colnames(bre.2)[c(6,11)] <- c("parent1or2","species")
 
 
 #correct cases where field_sex is NA
@@ -96,38 +115,62 @@ tail(bre.stacked)
 
 #check code and rings
 #more.11chr <- bre.stacked[nchar(bre.stacked$code)!=6, c("year","site","sex","nest","code")] 
-more.11chr <- bre.stacked[nchar(bre.stacked$parent1or2)!=7, c("year","site","nest","parent1or2")] 
 
+more.11chr <- bre.stacked[nchar(bre.stacked$parent1or2)!=7, c("year","site","nest","parent1or2")] 
 str(more.11chr) #762 might not be rings; MAD 1629
 
-no.ring <- more.11chr[order(more.11chr$code)& !is.na(more.11chr$code),]
+#no.ring <- more.11chr[order(more.11chr$code)& !is.na(more.11chr$code),]
+no.ring <- more.11chr[order(more.11chr$parent1or2)& !is.na(more.11chr$parent1or2),]
 str(no.ring) #190 with code but no metal ring available, the rest are NA
 
-bre.stacked$code[!bre.stacked$code %in% more.11chr$code] #correct rings = 1189
+#bre.stacked$code[!bre.stacked$code %in% more.11chr$code] #correct rings = 1189
+bre.stacked$parent1or2[!bre.stacked$parent1or2 %in% more.11chr$parent1or2] #correct rings = 2147
 
-no.ring$code
+#no.ring$code
+no.ring$parent1or2
 #----------------------change "unringed" to XX.XX|XX.XX and "unknown" to NA
-# ind <- grep(pattern = "[Uu]nknown", bre.stacked$code, perl=TRUE)
-# bre.stacked[ind,]
-# bre.stacked$code[ind] = NA
-# 
+#ind <- grep(pattern = "[Uu]nknown", bre.stacked$code, perl=TRUE)
+ind <- grep(pattern = "UNK", bre.stacked$parent1or2, perl=TRUE)
+bre.stacked[ind,]
+#bre.stacked$code[ind] = NA
+bre.stacked$parent1or2[ind] = NA
+
 # ind <- grep(pattern = "[Uu]nringed", bre.stacked$code, perl=TRUE)
-# bre.stacked[ind,]
+ind <- grep(pattern = "UR", bre.stacked$parent1or2, perl=TRUE)
+bre.stacked[ind,]
 # bre.stacked$code[ind] = "XX.XX|XX.XX"
+bre.stacked$parent1or2[ind] = "X.X|X.X"
 #-----------------------------------------------------------------------------------------------------
 
 
 #Regular expressions for correct codes:
-regexp1 <- "([RGLBYOWXM]{2})\\.([RGLBYOWXM]{2})\\|([RGLBYOWXM]{2})\\.([RGLBYOWXM]{2})$" #Allows Xs, therefore includes ambiguous codes
-regexp2 <- "([RGLBYOWM]{1})([X]{1})\\.([RGLBYOWM]{1})([X]{1})\\|([RGLBYOWM]{1})([X]{1})\\.([A-Z]{1})([X]{1})$" #does not allows Xs, only complete codes
+# regexp1 <- "([RGLBYOWXM]{2})\\.([RGLBYOWXM]{2})\\|([RGLBYOWXM]{2})\\.([RGLBYOWXM]{2})$" #Allows Xs, therefore includes ambiguous codes
+# regexp2 <- "([RGLBYOWM]{1})([X]{1})\\.([RGLBYOWM]{1})([X]{1})\\|([RGLBYOWM]{1})([X]{1})\\.([A-Z]{1})([X]{1})$" #does not allows Xs, only complete codes
+regexp1 <- "([RGLBYOWXMSsP]{1,2})\\.([RGLBYOWXMSsP]{1,2})\\|([RGLBYOWXMSsP]{1,2})\\.([RGLBYOWXMSsP]{1,2})$"
 
-ind.correct<-grep(pattern = regexp2, no.ring$code, perl=TRUE)
+ind.correct<-grep(pattern = regexp1, no.ring$parent1or2, perl=TRUE)
 correct.code <- no.ring[ind.correct,] #CORRECT OBS: 189 obs with correct and ambiguous codes, 92 obs with non-ambiguous codes
-str(correct.code)
+str(correct.code) #140
+correct.code$parent1or2 #60 Mad
 
 incorrect.code <- no.ring[-ind.correct,] 
-str(incorrect.code) #with regexp1: 1 with symbols; with regexp2: 98 ambiguous codes
+str(incorrect.code) #with regexp1: 1 with symbols; with regexp2: 98 ambiguous codes, 3636 MAD in bre.stacked; 127 in no.ring (most UNK and UR)
 head(incorrect.code)
+unique(incorrect.code$parent1or2)
+
+#Fix codes in wrong format e.g. WRML
+fix.code.p1<-incorrect.code[nchar(incorrect.code$parent1or2)==4,"parent1or2"]
+
+for(i in 1:length(bre.stacked$year)){ #for parent 1
+  if(bre.stacked$parent1or2[i] %in% fix.code.p1){
+    bre.stacked$new.code.p1or2[i] <- paste(substr(bre.stacked$parent1or2[i], 1,1),".", 
+                                substr(bre.stacked$parent1or2[i], 2,2), "|",
+                                substr(bre.stacked$parent1or2[i], 3,3), ".",
+                                substr(bre.stacked$parent1or2[i], 4,4), sep="")
+  }else{
+    bre.stacked$new.code.p1or2[i] <- bre.stacked$parent1or2[i]
+  }
+}
 
 
 # #Regular expressions for codes with g
@@ -151,183 +194,96 @@ head(incorrect.code)
 #bre[ind.2g,]
 
 #bre.stacked$chick1 <- gsub("g","L", bre.stacked$chick1) #only found g's in chick1
+
 #---------------------------------------------------------------------------------------
-
-# more.11chr <- bre.stacked[nchar(bre.stacked$code)!=6, c("year","site","sex","nest","code")] 
-# str(more.11chr) #853 might not be rings
-# 
-# no.ring <- more.11chr[order(more.11chr$code)& !is.na(more.11chr$code),]
-# str(no.ring) #190 with no ring known, the rest are NA. AFTER MANIP=
-# 
-# bre.stacked$code[!bre.stacked$code %in% more.11chr$code] #correct rings = 1189
-# 
-# no.ring$code
-
-#Regular expressions for correct codes:
-# regexp1 <- "([RGLBYOWXM]{2})\\.([RGLBYOWXM]{2})\\|([RGLBYOWXM]{2})\\.([RGLBYOWXM]{2})$"
-# regexp2 <- "([RGLBYOWM]{1})([X]{1})\\.([RGLBYOWM]{1})([X]{1})\\|([RGLBYOWM]{1})([X]{1})\\.([A-Z]{1})([X]{1})$"
-# 
-# ind.correct<-grep(pattern = regexp2, no.ring$code, perl=TRUE)
-# correct.code <- no.ring[ind.correct,] #CORRECT OBS: 130 obs with regexp1, 130 obs with regexp2 AFTER MANIP 148
-# str(correct.code)
-# 
-# incorrect.code <- no.ring[-ind.correct,] 
-# str(incorrect.code) #with regexp1: 1, with reexp1: 98
-# head(incorrect.code)
-# incorrect.code$code
-
-#Change "UR" to NA----------------------------------
-#incorrect.code$code
-#incorrect.code[31,]
-#bre.stacked[bre.stacked$nest==105,]
-#cap.std[cap.std$nest==105,] #no female captured for this nest
-
-#incorrect.code$code[31]<- NA
-#bre.stacked$code[1305] <- NA
-#---------------------------------------------------------------------
-
-#incorrect.code$code
-
-
-#get rid of extra characters-----------------------------------------
-#bre.stacked$code[bre.stacked$code %in% "BX.MX.|OX.OX"] <- "BX.MX|OX.OX"
-
-#add dots 
-#dot2 <- "^[^.,]+$" # "abc" "ABC"
-#ind<-grep(pattern = dot2, incorrect.code$code, perl=TRUE)
-#no.dot <- incorrect.code[ind,]
-  #year site sex nest  code                                      comments
-  #305  2010    S   m  -27 XX|BW                                          <NA>
-  #1116 2010    S   f -301 MG|BW adopted 2 chicks on 8 Nov; one of them CA3443
-
-
-#--------------------------------change
-#bre.stacked$code <- ifelse(bre.stacked$code %in% no.dot$code, paste(substr(bre.stacked$code, 1,1), "X.",
- #                                                    substr(bre.stacked$code, 2,2), "X|",
-  #                                                   substr(bre.stacked$code, 4,4), "X.",
-   #                                                  substr(bre.stacked$code, 5,5), "X",
-    #                                                 sep=""),
-     #           bre.stacked$code)
-
-#bre.stacked[c(305,1116),]
-
-#------------------------------------------------------------
-#more.11chr <- bre.stacked[nchar(bre.stacked$code)!=6, c("year","site","sex","nest","code","comments")] 
-#str(more.11chr) #762 might not be rings
+#Check again after changes:
+more.11chr <- bre.stacked[nchar(bre.stacked$new.code.p1or2)!=7, c("year","site","nest","new.code.p1or2")] 
+str(more.11chr) #762 might not be rings; MAD 1629; MAD after corrections: 1598
 
 #no.ring <- more.11chr[order(more.11chr$code)& !is.na(more.11chr$code),]
-#str(no.ring) #206 with no ring known, the rest are NA. AFTER MANIP 182 (181 2nd log 21/05/2015)
+no.ring <- more.11chr[order(more.11chr$new.code.p1or2)& !is.na(more.11chr$new.code.p1or2),]
+str(no.ring) #84
 
-#bre.stacked$code[!bre.stacked$code %in% more.11chr$code] #correct rings = 982
+#bre.stacked$code[!bre.stacked$code %in% more.11chr$code] #correct rings = 1189
+bre.stacked$new.code.p1or2[!bre.stacked$new.code.p1or2 %in% more.11chr$new.code.p1or2] #correct rings = 2147, after MAD corrections: 2178 (includes codes with 7 characters)
 
 #no.ring$code
+no.ring$new.code.p1or2
+# [1] "YY.X|X.WY" "YY.X|X.WG" "YY.X|X.WO" "YY.X|X.WY" "YY.X|X.WR" "YY.X|X.WW" "YY.X|X.RL"
+# [8] "YY.X|X.RW" "YY.X|X.RR" "YY.X|X.RO" "YY.X|X.RG" "YY.X|X.RB" "LL.X|X.OW" "LL.X|X.OR"
+# [15] "LL.X|X.OG" "LL.X|X.OB" "GG.X|X.BY" "GG.X|X.BW" "GG.X|X.BR" "GG.X|X.BG" "GG.X|X.BB"
+# [22] "GG.X|X.BL" "LL.X|X.GY" "LL.X|X.GW" "LL.X|X.GR" "LL.X|X.GO" "LL.X|X.GL" "GG.X|X.GG"
+# [29] "LL.X|X.LY" "LL.X|X.LW" "LL.X|X.LR" "LL.X|X.LO" "LL.X|X.LB" "LL.X|X.LG" "LL.X|X.LL"
+# [36] "Luke?"     "GG.X|X.BO" "YY.X|X.RY" "YY.X|X.WK" "YY.X|YY.X" "LL.X|X.LY" "LL.X|X.LG"
+# [43] "LL.X|X.LL" "LL.X|X.GL" "YY.X|BG.X" "YY.X|YB.X" "YY.X|X.YR" "YY.X|YY.X" "YY.X|YL.X"
+# [50] "YY.X|YL.X" "YY.X|BY.X" "YY.X|BB.X" "?"         "?"         "LL.X|X.LW" "?"        
+# [57] "ub"        "Luke?"     "Luke?"     "F73085"    "LL.X|X.OO" "LL.X|X.GG" "LL.X|X.OL"
+# [64] "LL.X|X.LW" "LL.X|X.LB" "YY.X|BO.X" "YY.X|YG.X" "YY.X|X.YW" "YY.X|YO.X" "?"        
+# [71] "?"         "?"         "?"         "?"         "?"         "?"         "?"        
+# [78] "?"         "?"         "?"         "?"         "?"         "?"         "?" 
 
-#Regular expressions for correct codes:
-#regexp1 <- "([RGLBYOWXM]{2})\\.([RGLBYOWXM]{2})\\|([RGLBYOWXM]{2})\\.([RGLBYOWXM]{2})$"
-#regexp2 <- "([RGLBYOWM]{1})([X]{1})\\.([RGLBYOWM]{1})([X]{1})\\|([RGLBYOWM]{1})([X]{1})\\.([A-Z]{1})([X]{1})$"
+#Changes----------------------------------
+#? to NA
+bre.stacked$parent1or2[bre.stacked$parent1or2 %in% "?"] <- NA
 
-#ind.correct<-grep(pattern = regexp1, no.ring$code, perl=TRUE)
-#correct.code <- no.ring[ind.correct,] #CORRECT OBS: 130 obs with regexp1, 130 obs with regexp2 AFTER MANIP 148 (151 2nd log 21/05/2015)
-#str(correct.code)
+#Luke? to info Luke sent in his email for nest: 2015-KiP-104
+rownames(bre.stacked)<-1:length(bre.stacked$year)
+table(bre.stacked$species)
+bre.stacked$species[bre.stacked$species %in% "KIP"] <- "KiP"
+bre.stacked$species[bre.stacked$species %in% "WFP"] <- "WfP"
+bre.stacked$species[bre.stacked$species %in% "WP"] <- "WfP"
+bre.stacked$nest.id <- paste(bre.stacked$year, bre.stacked$species, bre.stacked$nest, sep="-")
 
-#incorrect.code <- no.ring[-ind.correct,] 
-#str(incorrect.code) #with regexp1: 76 errors AFTER MANIP 30
-#head(incorrect.code)
+bre.stacked[bre.stacked$parent1or2 %in% "Luke?",]
+bre.stacked[bre.stacked$nest.id %in% "2015-KiP-104",]
 
-#add Xs to codes with no Xs
-#incorrect.code$code
+bre.stacked$comments_stdfile <- NA
+bre.stacked[1255,"parent1or2"] <- "FH69063"
+bre.stacked[1255, "comments_stdfile"] <- "Added missing parents with info in Luke's email (CCI march 2016)"
+bre.stacked[3143,"parent1or2"] <- "FH72227"
+bre.stacked[3143, "comments_stdfile"] <- "Added missing parents with info in Luke's email (CCI march 2016)"
 
-# dot2 <- "^[^!?]+$" # "abc" "ABC"
-# ind<-grep(pattern = dot2, incorrect.code$code, perl=TRUE)
-# no.dot <- incorrect.code[ind,]
-# no.dot$code
-# 
-# #-----------------------------change
-# bre.stacked$code<- ifelse(bre.stacked$code %in% no.dot$code, paste(substr(bre.stacked$code, 1,1), "X.",
-#                                                                    substr(bre.stacked$code, 3,3), "X|",
-#                                                                    substr(bre.stacked$code, 5,5), "X.",
-#                                                                    substr(bre.stacked$code, 7,7), "X",
-#                                                                    sep=""),
-#                           bre.stacked$code) 
-# 
-# #ind <- which(bre.stacked$code %in% no.dot$code)
-# #trial[ind]
-# #bre.stacked[ind,]
-# #-------------------------------------------------------------------------------
-# 
-# more.11chr <- bre.stacked[nchar(bre.stacked$code)!=6, c("year","site","sex","nest","code","comments")] 
-# str(more.11chr) #762 might not be rings
-# 
-# no.ring <- more.11chr[order(more.11chr$code)& !is.na(more.11chr$code),]
-# str(no.ring) #206 with no ring known, the rest are NA. AFTER MANIP 182
-# 
-# bre.stacked$code[!bre.stacked$code %in% more.11chr$code] #correct rings = 982
-# 
-# no.ring$code
-# 
-# #Regular expressions for correct codes:
-# regexp1 <- "([RGLBYOWXM]{2})\\.([RGLBYOWXM]{2})\\|([RGLBYOWXM]{2})\\.([RGLBYOWXM]{2})$"
-# regexp2 <- "([RGLBYOWM]{1})([X]{1})\\.([RGLBYOWM]{1})([X]{1})\\|([RGLBYOWM]{1})([X]{1})\\.([A-Z]{1})([X]{1})$"
-# 
-# ind.correct<-grep(pattern = regexp1, no.ring$code, perl=TRUE)
-# correct.code <- no.ring[ind.correct,] #CORRECT OBS: 130 obs with regexp1, 130 obs with regexp2 AFTER MANIP 148
-# str(correct.code)
-# 
-# incorrect.code <- no.ring[-ind.correct,] 
-# str(incorrect.code) #with regexp1: 76 errors AFTER MANIP 2
-# head(incorrect.code)
-# # year site sex nest        code
-# # 666  2013    S   M   -3  CA1136, F!
-# #   1525 2013    S   F   32 OX.MX|RX.??
-# 
-# #---------------------------------change
-# bre.stacked$code[666] <- "CA1136"
-#---------------------------------------
+#incorrect ring F73085:
+bre.stacked[bre.stacked$parent1or2 %in% "F73085",]
+bre.stacked[bre.stacked$parent1or2 %in% "F73085","parent1or2"] <- "FH73085"
+bre.stacked[3200,]
 
-#------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------
-#--------------------------SAVE PRE-STD Bird ref with corrected codes----------------------------
-#------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------
-#getwd()
-#setwd("F:/Plovers/KP data management/Maintenance/Cleaning data code/Applying code to populations/Maio 2007-2014/output/Working files generated")
+#incorrect ub: [assumed it means unringed...ur]
+bre.stacked[bre.stacked$parent1or2 %in% "ub",]
+bre.stacked[bre.stacked$parent1or2 %in% "ub", "parent1or2"]<-"X.X|X.X"
 
-#write.csv(bre.stacked, "Bird_Ref_pres_Std.csv")
-#write.csv(bre.stacked, "Bird_Ref_pres_Std v2.csv")
-#------------------------------------------------------------------------------------------------
-# #------------------------------------------------------------------------------------------------
-# getwd()
-# setwd("F:/Plovers/KP data management/Maintenance/Cleaning data code/Applying code to populations/Maio 2007-2014/input")
-# csvfiles <- list.files(path = ".", pattern='*\\.csv$', all.files=TRUE)
-# csvfiles[2:7]
-# 
-# import.list <- lapply(csvfiles[2:7], read.csv, header = TRUE, as.is=TRUE, na.strings=c("NA"," ",""))
-# 
-# working.list <- import.list
-# names(working.list) <- c("bfa","cap","sex","nes","res","surv")
-# attach(working.list)
-# 
-# #attach std files
-# setwd("F:/Plovers/KP data management/Maintenance/Cleaning data code/Applying code to populations/Maio 2007-2014/output")
-# csvfiles.2 <- list.files(path = ".", pattern='*\\.csv$', all.files=TRUE)
-# 
-# import.list.2 <- lapply(csvfiles.2, read.csv, header = TRUE, as.is=TRUE, na.strings=c("NA"," ",""))
-# working.list.2 <- import.list.2
-# names(working.list.2) <- c("cap.std","nes.std","res.std")
-# attach(working.list.2)
-# 
-# 
-# 
-# setwd("F:/Plovers/KP data management/Maintenance/Cleaning data code/Applying code to populations/Maio 2007-2014/output/Working files generated")
-# 
-# csvfiles <- list.files(path = ".", pattern='*\\.csv$', all.files=TRUE)
-# csvfiles
-# 
-# import.list <- lapply(csvfiles[1], read.csv, header = TRUE, as.is=TRUE, na.strings=c("NA"," ",""))
-# 
-# working.list <- import.list
-# names(working.list) <- c("bre.stacked")
-# attach(working.list)
+
+#---------------------------------------------------------------------
+#Put rings under ring.p1or2 and codes under code.p1or2
+#a) Lookup individuals with no rings and only code in parent1 and parent2------------
+letters<-"^[FH0-9]*$"
+ind.rings<-grep(pattern=letters, bre.stacked$parent1or2, perl=T)
+
+rings.bre<-bre.stacked[ind.rings,"parent1or2"]
+bre.stacked[-ind.rings, "parent1or2"]
+
+
+#b) Replace code with ring only on those where no ring was present already in parent1 and parent2---------
+names(bre.stacked)
+bre.stacked2<-bre.stacked
+bre.stacked<-bre.stacked2
+
+
+bre.stacked$ring.p1or2 <- NA
+bre.stacked[bre.stacked$parent1or2 %in% rings.bre,"parent1or2"]
+bre.stacked[bre.stacked$parent1or2 %in% rings.bre,"ring.p1or2"] <- bre.stacked[bre.stacked$parent1or2 %in% rings.bre,"parent1or2"]
+
+bre.stacked$code.p1or2 <- NA
+bre.stacked[!bre.stacked$parent1or2 %in% rings.bre, "parent1or2"]
+bre.stacked[!bre.stacked$parent1or2 %in% rings.bre, "code.p1or2"] <- bre.stacked[!bre.stacked$parent1or2 %in% rings.bre, "new.code.p1or2"]
+
+#----------------debug---------------
+bre.stacked[!is.na(bre.stacked$parent1or2),c(6,17,18)]
+bre.stacked[nchar(bre.stacked$parent1or2) %in% 4,]
+#----------------------------------------------------------
+
+#---------------------------------------------------------------------------
+
 #------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------
 
@@ -336,136 +292,80 @@ head(incorrect.code)
 # table(bre.stacked$year)
 # #bre.stacked$year[bre.stacked$year %in% "20014"] <- "2014" #correct wrong year 20014
 
-#------------------------------------------------------------------------------------------------
-
-# codes <- c(rbind(bre$male, bre$female))
-# setdiff(codes, bre.stacked$code)
-# setdiff(bre.stacked$code,codes)
-
-# more.11chr <- bre.stacked[nchar(bre.stacked$code)!=6, c("year","site","sex","nest","code","comments")] 
-# str(more.11chr) #761 might not be rings
-# 
-# no.ring <- more.11chr[order(more.11chr$code)& !is.na(more.11chr$code),]
-# str(no.ring) #206 with no ring known, the rest are NA. AFTER MANIP 180
-# 
-# bre.stacked$code[!bre.stacked$code %in% more.11chr$code] #correct rings = 983
-# 
-# no.ring$code
-
-
+#--------------------------------------------------------------------------------------------
 #Match codes with rings
+#a) find duplicates in Mad:
+table(cap$age)
+cap$age[cap$age %in% "C"] <- "J"
+cap$code<-gsub(" ","",cap$code)
+cap$ring<-gsub(" ","",cap$ring)
 
-# match.1 <- match(bre.stacked$code[bre.stacked$code %in% no.ring$code], cap.std$code)
-#     #returns which codes in bre.stacked are present in captures
-# 
-# code.ring1 <- cap.std[match.1, c("code","ring","sex")]
-# code.ring <- code.ring1[!is.na(code.ring1$ring) & !code.ring1$sex %in% "J",]
-# 
-# code.ring[order(code.ring$code),] #list of codes in bird ref with their matching rings (this only works for non duplicates and complete codes)
+cap.dup<-cap[cap$site %in% "Andavadoaka" & !cap$age %in% "J",]
 
+table(cap$year)
+table(cap.dupl$species)
+
+
+cap.dup$sp.code.ring <- paste(cap.dup$species,"-", cap.dup$code,"-", cap.dup$ring, sep="")
+cap.dup$sp.sex.code <- paste(cap.dup$species,"_", cap.dup$code, "-",cap.dup$sex, sep="")
+
+unique.code.ring<- unique(cap.dup$sp.code.ring) #3017 unique sp.code.ring; 3233 after update
+
+lookdup <-strsplit(unique.code.ring, "-")
+
+library(plyr)
+ldup <- ldply(lookdup) #turn list into two columns
+#colnames(ldup) <- c("code","ring")
+colnames(ldup) <- c("sp","code","ring")  
+
+#-------debug-----
+head(ldup[order(ldup$ring),], n=1300)
+#----------------
+
+#Get rid of ambiguous codes to delete duplicates:
+pat0<-"X"
+library(stringr)
+x0 <- ldup[!str_detect(ldup$code, pattern=pat0),] #allow no Xs in codes (MAD)
+
+str(x0) #1787; 1911 after update; 1676 after omitting Juveniles
+x0[order(x0$code),]
+x0$sp.code <- paste(x0$sp, x0$code, sep="-")
+
+ind <- which(duplicated(x0$sp.code) | duplicated(x0$sp.code, fromLast=TRUE))
+str(x0[ind,]) #MAIO 34; 38; 36; MAD: 308 (several with no code); 168 after omitting Juveniles
+
+x1 <- x0[ind,]
+x1[order(x1$code),]
+
+dupl <- x1 #List of rings with duplicated codes 
+str(dupl) #36 Ceuta, 308 in Mad including Juv; 168 after omitting Juveniles
+
+rings.br <- bre.stacked$ring.p1or2
+
+ind <- which(rings.br %in% dupl$sp_code | rings.br %in% dupl$ring)
+omit1 <- rings.br[ind] #list of rings to omit MAD: 199 individuals need to be omitted
+
+rings.br[-ind]#Mad: 2008 individuals will be included; 3576 after update (include NAs)
 #replace codes with rings in bird reference ONLY for those unambiguous codes which are NOT duplicates
 #to avoid errors of misidentifying individuals we can only assign rings to codes that are unambiguous (complete codes with no Xs) and 
 #those that are not duplicated
 
-#generate list of duplicates in captures
-cap$sex.code <- paste(cap$code, cap$sex, sep="-")
+#--------------------------------------------
+#b) Match codes from captures---------------
 
-cap$code.ring <- paste(cap$code, cap$ring, sep="-")
+bre.stacked$species.code<-paste(bre.stacked$species, bre.stacked$code, sep="-")
+cases.to.change <- bre.stacked[!bre.stacked$code %in% omit1,]
+#list of rings where code can be found, omits duplicates and ambiguous codes
+names(cases.to.change)
 
-
-      #code.rings <- Filter(function(x)length(x)>1, split(cap.std$ring,cap.std$code))
-count.codes <- cap[!cap$sex %in% "J" & !is.na(cap$ring),]
-str(count.codes) #852 obs
-
-count <- as.data.frame(table(count.codes$code.ring)) #count appearance of unique code.ring
-severalapp <- count[count$Freq>1,]
-singleapp <- count[count$Freq<2,]
-
-library(stringr)
-countls<- unlist(str_split(count$Var1, "-")) #the list of rings-codes gives us unique sets of rings-codes
-m <- matrix(countls, ncol=2, byrow=T)
-count.codes.ls <- as.data.frame(m) #538 obs but CA3110 has no code:
-  #CA3110 appears with no code
-  cap[cap$ring %in% "CA3110",] #it's a lost ring!
-
-
-count.codes.ls$code.ring <- paste(count.codes.ls$V1, count.codes.ls$V2, sep="-")
-
-#----------------------------------------------------------------
-#List of duplicated codes that need to be omitted
-codedupl <- count.codes.ls[duplicated(count.codes.ls$V1)| duplicated(count.codes.ls$V1, fromLast=T),]
-str(codedupl) #68 duplicated codes but including ambiguous codes
-
-pat<- "XX.XX"#get rid of ambiguous codes from list of duplicates
-str(codedupl[!str_detect(codedupl$V1, pattern=pat),]) #remaining 63 obs
-omit <- codedupl[!str_detect(codedupl$V1, pattern=pat),]
-
-#------------------------------------------------------------------------
-pat<- "XX"
-cases.to.change <- no.ring[!no.ring$code %in% omit$V1 & !str_detect(no.ring$code, pattern=pat),]
-              #omits duplicates and ambiguous codes
-
-match.2 <- match(cases.to.change$code, cap$code)
+match.2 <- match(cases.to.change$species.code, cap$species.code)
 
 codes.to.replace <- cap[match.2, c("code","ring")]
 
 
 #Replace codes with rings in bre.stacked only when they are not duplicates or ambiguous
 
-for (i in 1:length(bre.stacked$code)){
-  
-  if(bre.stacked$code[i] %in% cases.to.change$code)
-    bre.stacked$ring[i] <- codes.to.replace$ring[match(bre.stacked$code[i], codes.to.replace$code)]
-  else
-    bre.stacked$ring[i] <- bre.stacked$code[i]
- }
-        #This was changed below (see line 426 onwards)
-
-# bre.stacked[bre.stacked$code %in% cases.to.change$code,] #seems right
-# tail(bre.stacked)
-# codes.to.replace[order(codes.to.replace$code),]
-
-
-#--------------------------------------------------------------------------21/05/2015 (lines 385-408)
-
-  #there are comments that read "combination not in file", there might be cases where codes are wrong but
-  #coincide with codes of birds ringed later?? check this.
-#   names(bre.stacked)
-   codes.check<-bre.stacked[bre.stacked$comments_field %in% "Combination not in file" & order(bre.stacked$code), c("year","nest","code","comments_field")]
-#   cap[cap$code %in% codes.check$code & order(cap$code), c("year","date", "code","ring","nest")]
-
-# codes.check
-# year nest        code        ring                comments
-# 286  2010 -111 OX.MX|GX.BX      CA3616 Combination not in file #ringed in 2010, this nest/brood does not appear in captures!
-# 313  2010  -19 MX.LX|BX.GX      CA2741 Combination not in file #ringed in 2010
-# 450  2010  122 MX.OX|WX.YX      CA1137 Combination not in file #ringed in 2013 **
-# 470  2010  142 MX.OX|WX.YX      CA1137 Combination not in file #ringed in 2013 **
-# 1125 2010 -224 OX.MX|GX.YX      CA3639 Combination not in file #ringed in 2010
-# 1178 2010  -26 MX.LX|YX.YX MX.LX|YX.YX Combination not in file #ringed in 2010, duplicate generated in 2014
-# 1182 2010  -22 MX.YX|RX.BX      CA3448 Combination not in file #ringed in 2010
-# 1185 2010  -19 OX.MX|BX.RX      CA2712 Combination not in file #ringed in 2010
-
-bre.stacked[bre.stacked$nest==-111,] #this nest does not appear in captures file, but in notes the chick appears as MX.XX|OX.XX, however in notebook this nest doesn't appear either
-cap[cap$nest==-111,]
-
-#Add comment to nest 2010-122 and 2010-142
-bre.stacked[bre.stacked$year==2010 & bre.stacked$nest %in% c(122,142),]
-bre.stacked[bre.stacked$year==2010 & bre.stacked$nest %in% c(122,142), "comments_stdfile"]<-"Male's code not in file according to field notes, MO|WY first appears in captures until 2013 (CCI 2016)"
-
-
-#correct ring of nest 2010--26 since duplicate was generated until 2014
-cap[cap$year==2010&cap$nest==-26,]
-cap[cap$code %in% "MX.LX|YX.YX",]
-bre.stacked[bre.stacked$year==2010 & bre.stacked$nest %in% c(-26) & bre.stacked$sex %in% "F",]
-bre.stacked[bre.stacked$year==2010 & bre.stacked$nest %in% c(-26) & bre.stacked$sex %in% "F","ring"] <- "CA2740"
-bre.stacked[bre.stacked$year==2010 & bre.stacked$nest %in% c(-26) & bre.stacked$sex %in% "F","comments_stdfile"] <-"Duplicate was generated in 2014, so it was possible to assign metal ring to female (CCI 2016)"
-#check rest of comments to see if there are more similar cases
-#bre.stacked[!is.na(bre.stacked$comments) & bre.stacked$sex %in% "F","comments"]
-
-
-unique(codes.to.replace$code) #75 codes in Birdref
-
-  #match id.nest.sex form bird.ref and cap.std to see which adults from nests in BirdRef with only code were captured that year
+#match id.nest.sex form bird.ref and cap.std to see which adults from nests in BirdRef with only code were captured that year
 bre.stacked$id.nest.sex <- paste(bre.stacked$year, bre.stacked$site, bre.stacked$nest, bre.stacked$sex, sep="-")
 cap$id.nest.sex <- paste(cap$year, cap$site, cap$nest, cap$sex, sep="-")
 
