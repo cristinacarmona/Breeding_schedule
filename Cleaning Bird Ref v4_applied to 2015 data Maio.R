@@ -431,22 +431,31 @@ cap.1$sp.code <- paste(cap.1$species, cap.1$code, sep="-")
 bre.stacked$sp.code <- paste(bre.stacked$species, bre.stacked$code, sep="-")
 
 bre.stacked$ring <- NA
+bre.stacked[!is.na(bre.stacked$ring.p1or2),"ring"] <- bre.stacked[!is.na(bre.stacked$ring.p1or2),"ring.p1or2"]
 
 for(i in 1:length(bre.stacked$year)){ #modification for MAD, search for rings of individuals with code but no ring
   print(i)
-  if(is.na(bre.stacked$ring.p1or2[i]) & !is.na(bre.stacked$code[i])){#its not working 24/03/2016
-    ind<-which(cap.1$sp.code %in% bre.stacked$sp.code[i])
-    cap.add <- cap.1[ind,]  
-    bre.stacked$ring[i] <- cap.add$ring
-  }else{
-    bre.stacked$ring[i] <- NA
+  xx<-"X\\.X"
+  xm<-"\\.X\\|M"
+  xxm<-"\\|X\\.M"
+  if(is.na(bre.stacked$ring[i]) & 
+     !is.na(bre.stacked$code[i]) &
+     !grepl(xx, bre.stacked$code[i]) &
+     !grepl(xm, bre.stacked$code[i]) &
+     !grepl(xxm,bre.stacked$code[i])){#its not working 24/03/2016
+       ind<-which(cap.1$sp.code %in% bre.stacked$sp.code[i])
+       cap.add <- cap.1[ind, ] 
+       bre.stacked$ring[i] <- ifelse(length(ind)>0, cap.add$ring, NA)
+       }else{
+    bre.stacked$ring[i] <- bre.stacked$ring.p1or2[i]
   }
 }
 #-----------develop previous for-----
-bre.stacked[is.na(bre.stacked$ring.p1or2) & !is.na(bre.stacked$code),]
-bre.stacked[1165,]
-
-
+# bre.stacked[is.na(bre.stacked$ring.p1or2) & !is.na(bre.stacked$code),]
+# bre.stacked[1549,]
+# 
+# table(bre.stacked$code)
+# i<-1223
 #---------------------------------------
   #check changes:
   bre.stacked[bre.stacked$ring != bre.stacked$ring2 & !is.na(bre.stacked$ring), c("id.nest.sex","ring","ring2")]
