@@ -26,31 +26,6 @@
 #23/03/2016 1st log start applying code to Mad up to line 103
 
 #--------------------------------------------------
-
-getwd()
-#setwd("F:/Plovers/KP data management/Maintenance/Cleaning data code/Applying code to populations/Maio 2007-2015/input")
-#setwd("C:/Plovers/KP data management/Maintenance/Cleaning data code/Applying code to populations/Maio 2007-2015/input")
-
-# csvfiles <- list.files(path = ".", pattern='*\\.csv$', all.files=TRUE)
-# csvfiles
-# 
-# import.list <- lapply(csvfiles, read.csv, header = TRUE, as.is=TRUE, na.strings=c("NA"," ",""))
-# 
-# working.list <- import.list
-# names(working.list) <- c("bre","bfa","cap","sex","nes","res")
-# attach(working.list)
-
-#attach std files
-# setwd("F:/Plovers/KP data management/Maintenance/Cleaning data code/Applying code to populations/Maio 2007-2014/output")
-# #setwd("c:/Plovers/KP data management/Maintenance/Cleaning data code/Applying code to populations/Maio 2007-2014/output")
-# 
-# csvfiles.2 <- list.files(path = ".", pattern='*\\.csv$', all.files=TRUE)
-# 
-# import.list.2 <- lapply(csvfiles.2, read.csv, header = TRUE, as.is=TRUE, na.strings=c("NA"," ",""))
-# working.list.2 <- import.list.2
-# names(working.list.2) <- c("cap.std","nes.std","res.std")
-# attach(working.list.2)
-
 #Madagascar
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
 
@@ -252,6 +227,10 @@ bre.stacked[3200,]
 bre.stacked[bre.stacked$parent1or2 %in% "ub",]
 bre.stacked[bre.stacked$parent1or2 %in% "ub", "parent1or2"]<-"X.X|X.X"
 
+#get rid of ?
+bre.stacked[bre.stacked$new.code.p1or2 %in% "?",] 
+bre.stacked[bre.stacked$new.code.p1or2 %in% "?", "new.code.p1or2"] <- NA
+bre.stacked[bre.stacked$code.p1or2 %in% "?", "code.p1or2"] <- NA
 
 #---------------------------------------------------------------------
 #Put rings under ring.p1or2 and codes under code.p1or2
@@ -278,7 +257,7 @@ bre.stacked[!bre.stacked$parent1or2 %in% rings.bre, "parent1or2"]
 bre.stacked[!bre.stacked$parent1or2 %in% rings.bre, "code.p1or2"] <- bre.stacked[!bre.stacked$parent1or2 %in% rings.bre, "new.code.p1or2"]
 
 #----------------debug---------------
-bre.stacked[!is.na(bre.stacked$parent1or2),c(6,17,18)]
+bre.stacked[!is.na(bre.stacked$parent1or2),c(6,17)]
 bre.stacked[nchar(bre.stacked$parent1or2) %in% 4,]
 #----------------------------------------------------------
 
@@ -303,7 +282,7 @@ cap$ring<-gsub(" ","",cap$ring)
 cap.dup<-cap[cap$site %in% "Andavadoaka" & !cap$age %in% "J",]
 
 table(cap$year)
-table(cap.dupl$species)
+table(cap.dup$species)
 
 
 cap.dup$sp.code.ring <- paste(cap.dup$species,"-", cap.dup$code,"-", cap.dup$ring, sep="")
@@ -352,45 +331,123 @@ rings.br[-ind]#Mad: 2008 individuals will be included; 3576 after update (includ
 
 #--------------------------------------------
 #b) Match codes from captures---------------
+#MAD:
+names(cap.dup)
+names(bre.stacked)
+unique(cap.dup$code)
+#pat<-"XX"
+pat<- "X\\.X\\|M\\.X"#get rid of ambiguous codes from list of adult captures
+pat2<-"X\\.X\\|X\\.M"
 
-bre.stacked$species.code<-paste(bre.stacked$species, bre.stacked$code, sep="-")
-cases.to.change <- bre.stacked[!bre.stacked$code %in% omit1,]
-#list of rings where code can be found, omits duplicates and ambiguous codes
-names(cases.to.change)
+cap.dup[grep(cap.dup$code, pattern=pat),c("year","ring","code")]
+cap.2<-cap.dup[-grep(cap.dup$code, pattern=c(pat)),] 
+unique(cap.2$code)
 
-match.2 <- match(cases.to.change$species.code, cap$species.code)
+cap.2[grep(cap.2$code, pattern=c(pat2)),]
+cap.1<-cap.2[-grep(cap.2$code, pattern=c(pat2)),]
+cap.1<-cap.1[!cap.1$ring %in% omit1,]
+#List codes where ring can be looked up - its code.p1or2 
+unique(bre.stacked$code.p1or2)
 
-codes.to.replace <- cap[match.2, c("code","ring")]
+#------rings.inconsistent.codes--------------------------------------
+#some rings-codes appear more than once, if codes changed for some adults the previous for will have errors
+#create list of unique ring.codes to know which codes are good to use
+names(cap.1)
+cap.1$ring.code <- paste(cap.1$ring, cap.1$code,sep="-")
+freq.codes <- as.data.frame(table(cap.1$ring.code))
+head(freq.codes)
+
+unique.ring.code<-unique(cap.1$ring.code)
+lookdup <-strsplit(unique.ring.code, "-")
+library(plyr)
+ldup <- ldply(lookdup) #turn list into two columns
+#colnames(ldup) <- c("code","ring")
+colnames(ldup) <- c("ring","code")  
+head(ldup)
+freq.ring <- as.data.frame(table(ldup$ring))
+head(freq.ring)
+rings.times<-freq.ring[freq.ring$Freq >1, "Var1"] #rings appearing more than once in captures
+
+multiple.captures<-cap.1[cap.1$ring %in% rings.times,]
+multiple.captures[order(multiple.captures$ring),]
+multiple.captures[order(multiple.captures$ring) & multiple.captures$year >2012,] 
+rings.inconsistent.codes<-multiple.captures[order(multiple.captures$ring),"ring"] #76
+
+#------------------------
+names(bre.stacked)
+bre.stacked2<-bre.stacked
+bre.stacked<-bre.stacked2
+
+table(bre.stacked$code.p1or2, useNA ="always") #3630 NAs before for loop
+bre.stacked$code <- NA
+
+for(i in 1:length(bre.stacked$year)){ #if code is empty, search ring in capt and fill it
+  print(i)
+  options(warn=1)
+  if(is.na(bre.stacked$code.p1or2[i]) & !is.na(bre.stacked$ring.p1or2[i]) & !bre.stacked$ring.p1or2[i] %in% rings.inconsistent.codes){
+    ind<-which(cap.1$ring %in% bre.stacked$ring.p1or2[i])
+    add.cap<-cap.1[ind,]
+    if(length(ind) ==1){
+      bre.stacked$code[i] <- add.cap$code
+      }
+  }else{
+    if(bre.stacked$ring.p1or2[i] %in% rings.inconsistent.codes){
+      bre.stacked$code[i] <- "inconsistent codes"
+    }
+  }
+}
+
+table(bre.stacked$code, useNA="always") #NAs2339 after for loop
+
+#put codes in code.p1or2 in code from the ones that have no ring
+ind<-which(!is.na(bre.stacked$code.p1or2) & is.na(bre.stacked$code))
+bre.stacked[ind,] 
+bre.stacked[ind,"code"] <- bre.stacked[ind,"code.p1or2"]
+
+#----------debug/develop---------
+cap[cap$ring %in% "FH72139", ]
+cap.1[cap.1$ring %in% "FH72139", ]
+ 
+
+#trial
+ind<-which(cap.1$ring %in% bre.stacked$ring.p1or2[bre.stacked$ring.p1or2%in%"FH47123"])
+cap.1[ind,]
+
+bre.stacked[bre.stacked$ring.p1or2 %in% "FH47123",] #1846 idrow
+bre.stacked[3682,]
+str(bre.stacked[bre.stacked$code %in% "inconsistent codes",]) #77 codes with multiple captures and inconsistent codes, flag the ones where ring changed
+
+#------------------------Add rings to codes with no ring
+# for(i in 1:length(ids$year)){ #if ring has a code, search ring using code and replace#NOT IN MAD
+#   if(nchar(ids$ring[i])>9)
+#     ids$ring[i] <- cap.1$ring[match(ids$code[i], cap.1$code)]
+# }
+
+#exclude duplicates from captures for next for loop:
+#cap.1 omits duplicates
+names(cap.1)
+names(bre.stacked)
+cap.1$sp.code <- paste(cap.1$species, cap.1$code, sep="-")
+bre.stacked$sp.code <- paste(bre.stacked$species, bre.stacked$code, sep="-")
+
+bre.stacked$ring <- NA
+
+for(i in 1:length(bre.stacked$year)){ #modification for MAD, search for rings of individuals with code but no ring
+  print(i)
+  if(is.na(bre.stacked$ring.p1or2[i]) & !is.na(bre.stacked$code[i])){#its not working 24/03/2016
+    ind<-which(cap.1$sp.code %in% bre.stacked$sp.code[i])
+    cap.add <- cap.1[ind,]  
+    bre.stacked$ring[i] <- cap.add$ring
+  }else{
+    bre.stacked$ring[i] <- NA
+  }
+}
+#-----------develop previous for-----
+bre.stacked[is.na(bre.stacked$ring.p1or2) & !is.na(bre.stacked$code),]
+bre.stacked[1165,]
 
 
-#Replace codes with rings in bre.stacked only when they are not duplicates or ambiguous
-
-#match id.nest.sex form bird.ref and cap.std to see which adults from nests in BirdRef with only code were captured that year
-bre.stacked$id.nest.sex <- paste(bre.stacked$year, bre.stacked$site, bre.stacked$nest, bre.stacked$sex, sep="-")
-cap$id.nest.sex <- paste(cap$year, cap$site, cap$nest, cap$sex, sep="-")
-
-check.nests <- bre.stacked[bre.stacked$code %in% unique(codes.to.replace$code),]
-in.cap<- cap[cap$id.nest.sex %in% check.nests$id.nest.sex,] # 21 of the 75 with no ring in BirdRef were captured on the year when they bred
-
-
-#check.nests[check.nests$id.nest.sex %in% "2015-S--13-F",] #this female was mislabeled in the captures file which generated Birdref2015
-#-----------14/01/2016 corrected in original file
-
-
-  
-#---------------------------------------------------------------------------
-  #30/05/2015, 01/06/2015 ONLY in these nests can code be replaced with ring.
-  #change rings again in these cases
-tail(bre.stacked)
-
-for (i in 1:length(bre.stacked$code)){
-  
-  if(bre.stacked$id.nest.sex[i] %in% in.cap$id.nest.sex)
-    bre.stacked$ring2[i] <- in.cap$ring[match(bre.stacked$id.nest.sex[i], in.cap$id.nest.sex)]
-  else
-    bre.stacked$ring2[i] <- bre.stacked$code[i]
-}  
-
+#---------------------------------------
   #check changes:
   bre.stacked[bre.stacked$ring != bre.stacked$ring2 & !is.na(bre.stacked$ring), c("id.nest.sex","ring","ring2")]
   x <- bre.stacked[!is.na(bre.stacked$ring2) & bre.stacked$ring != bre.stacked$code | bre.stacked$ring != bre.stacked$ring2, c("id.nest.sex","code","ring","ring2") ]  
@@ -1072,7 +1129,7 @@ cap.std[cap.std$nest.id %in% nests.corrections & !is.na(cap.std$nest),]#nests fr
 #     bre.stacked$ring[i] <- codes.to.replace$ring[match(bre.stacked$code[i], codes.to.replace$code)]
 #   else
 #     bre.stacked$ring[i] <- bre.stacked$code[i]
-}
+#}
 #This was changed below (see line 426 onwards)
 
 # bre.stacked[bre.stacked$code %in% cases.to.change$code,] #seems right
