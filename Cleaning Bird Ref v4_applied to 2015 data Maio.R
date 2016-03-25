@@ -25,6 +25,8 @@
 #Apply code to Madagascar
 #23/03/2016 1st log start applying code to Mad up to line 103
 
+#25/03/2016 3rd log up to line 571, found missing/wrong rings in birdref
+
 #--------------------------------------------------
 #Madagascar
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
@@ -458,169 +460,116 @@ for(i in 1:length(bre.stacked$year)){ #modification for MAD, search for rings of
 # i<-1223
 #---------------------------------------
   #check changes:
-  bre.stacked[bre.stacked$ring != bre.stacked$ring2 & !is.na(bre.stacked$ring), c("id.nest.sex","ring","ring2")]
-  x <- bre.stacked[!is.na(bre.stacked$ring2) & bre.stacked$ring != bre.stacked$code | bre.stacked$ring != bre.stacked$ring2, c("id.nest.sex","code","ring","ring2") ]  
-  x[!is.na(x$ring2),]  
+head(bre.stacked)
+bre.stacked[!bre.stacked$ring %in% bre.stacked$ring.p1or2 & !is.na(bre.stacked$ring), c("nest.id","ring","ring.p1or2","code")]
 
 
-bre.stacked[bre.stacked$id.nest.sex %in% "2015-S--13-F",]
-bre.stacked[is.na(bre.stacked$code)&!is.na(bre.stacked$ring2),c("id.nest.sex","ring","ring2","chick1")]
-# #some have non-matching rings...check few cases
-#     bre.stacked[bre.stacked$id.nest.sex %in% "2012-S-3-M",]
-#     in.cap[in.cap$id.nest.sex %in% "2008-S--23-M",]
-#     in.cap[in.cap$ring %in% "CA3032",]
-# 
-#     a<-in.cap$id.nest.sex
-#     b<-x$id.nest.sex[!is.na(x$id.nest.sex)]
-# 
-#     c<-setdiff(a,b) #These are in captures but not in Birdref...check one by one
-# # [1] "2008-S--16-M" "2008-S--18-M" "2012-S-17-M"  "2009-S-32-F"  "2013-R-204-M"
-# # [6] "2012-S-101-F"
-#     bre.stacked[bre.stacked$id.nest.sex %in% c, c("id.nest.sex","code","ring","ring2")]
-
-#ring2 is correct, these did not have an id in Birdref but matching with captures now they do have:  
-#       id.nest.sex code ring  ring2
-# 58   2008-S--18-M <NA> <NA> CA1152
-# 60   2008-S--16-M <NA> <NA> CA1142
-# 549   2012-S-17-M <NA> <NA> CA1638
-# 720  2013-R-204-M <NA> <NA> CA2746
-# 1027  2009-S-32-F <NA> <NA> CA1674
-# 1458 2012-S-101-F <NA> <NA> CA2757
-#Considering these six and the 15 cases that were changed add up 21 (22 as one was repeated) nests where code could be changed.
-
-
-#Check inconsistent rings:
-x.1 <- x[grep(pattern="([0-9]+)", x$ring2, perl=T),] #only rings, omit codes
-x.2 <- x.1[x.1$ring != x.1$ring2,] #mismatched rings
-#     id.nest.sex        code   ring  ring2
-# 633   2013-S-12-M OX.MX|BX.OX CA3607 CA3010 # comment_field: male's code belongs to a female, but female was captured so male's CR is wrong #this has been corrected
-# 1407   2012-S-3-F MX.RX|GX.OX CA1159 CA1104
-# 1464 2012-S-107-F MX.WX|OX.LX CA3072 CA3083
-names(cap.std)
-cap.std[cap.std$id.nest.sex %in% x.2$id.nest.sex, c(2:7,15:18,21)] #check those inconsistent nests in captures
-#       ring  year site nest sex date        code observer comments_field                                    comments_stdfile  id.nest.sex
-# 149 CA1104 2012    S    3   F 1015 MX.OX|GX.OX       TS           <NA>                                                <NA>   2012-S-3-F #WRONG CODE in birdref
-# 751 CA3010 2013    S   12   M  920 MX.BX|OX.GX       TS           <NA> field sexed as F, molecularly sexed as M (CCI 2015)  2013-S-12-M #CORRECTED, sexes inverted
-# 868 CA3083 2012    S  107   F 1013 MX.WX|OX.YX       TS           <NA>                                                <NA> 2012-S-107-F #WRONG CODE in birdref
-bre.stacked[bre.stacked$ring %in% "CA3010",]
-        #look if code in birdref which does not match the one in captures belongs to opposite sex:
-        unique(x.2$id.nest.sex)#look for opposite sex in birdref
-          bre.stacked[bre.stacked$id.nest.sex %in% c("2013-S-12-F", "2013-S-12-M","2012-S-3-M", "2012-S-107-M"),]
-        # year site nest        code chick1 chick2 chick3                                                                 comments_field sex   ring  id.nest.sex  ring2
-        # 535  2012    S    3 MX.WX|GX.WX CA3773   <NA>   <NA>                                                                           <NA>   M CA3065   2012-S-3-M CA3065 #ok
-        # 592  2012    S  107 OX.MX|GX.BX   <NA>   <NA>   <NA>                                                                           <NA>   M CA3616 2012-S-107-M CA3616 #ok
-        # 1505 2013    S   12      CA3010   <NA>   <NA>   <NA> male's code belongs to a female, but female was captured so male's CR is wrong   M CA3010  2013-S-12-F CA3010 #was CA3607, but sex was inverted, corrected below ,/
-
-        #see corrections below, in nest 2013-S-12 sexes were inverted, this was corrected ,/
-
-
-        #CA1104, CA3083 codes in BirdRef are wrong added comment in comment_std, see corrections below [149,868]
 
 #-------------------------------------------------------------------------------------------------------
 
 #how many rings remain as codes or unknown?
-str(bre.stacked[nchar(bre.stacked$ring2) !=6,])
-ind<-which(nchar(bre.stacked$ring2)!=6) #740 cases with "unknown" metal ring (individuals not captured)
-str(bre.stacked[-ind,]) #1210 cases with rings
+table(bre.stacked$ring, useNA="always") #1671 NAs
+str(bre.stacked[nchar(bre.stacked$ring) !=7,]) #1671 of 3776
+ind<-which(nchar(bre.stacked$ring)!=7) #740 cases with "unknown" metal ring (individuals not captured)
+str(bre.stacked[-ind,]) #2105 cases with rings
 ringsonly<-bre.stacked[-ind,]
 
-
-# #-----------------------------------------------------------------------------
-# #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# #add comments: field comments and stdfile comments:
-# colnames(bre.stacked)[8]<- "comments_field"
-#  bre.stacked$comments_stdfile <- NA
-# #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# #------------------------------------------------------------------------------
-
-
-#Add marker saying if individuals in Birdref were captured that year or not.
-#This will allow to see whether id is reliable or not
-#unique(bre.stacked$captured_focalyear)
-# bre.stacked[is.na(bre.stacked$captured_focalyear),]
-# bre.stacked$captured_in_focalyear <- ifelse(bre.stacked$id.nest.sex %in% cap.std$id.nest.sex, "yes", "no")
-# 
-# str(bre.stacked[!is.na(bre.stacked$code) & bre.stacked$captured_in_focalyear %in% "no",]) #451 not captured in focal year
-# str(bre.stacked[!is.na(bre.stacked$code) & bre.stacked$captured_in_focalyear %in% "yes",])#712 captured in focal year
-# 
-# y<-bre.stacked[!is.na(bre.stacked$code) & bre.stacked$captured_in_focalyear %in% "no",] #see a random sample to see if anything looks suspicious
-# y[sample(1:nrow(y),30, replace=F),]
-# 
-# str(y[nchar(y$ring2) !=6,]) #144 of 451 not captured in focal year have codes instead of rings, 
-# #these could potentially be changed to ring if the code provided belongs to an individual captured before the focal year
-# 
-# str(y[nchar(y$ring2) ==6,]) #307 of 451 not captured in focal year have rings instead of codes....we don't know how reliable these are
-# y[nchar(y$ring2) ==6 & !is.na(y$comments_field),c("ring2","comments_field")]
-# 
-# 
-
-#check that sex of rings2 correspond to sex of captures and molecular sex
-
-ring2.sex1 <- paste(ringsonly$ring2, ringsonly$sex, sep="-")
-rs1<- as.data.frame(table(ring2.sex1))
-
-nojna <- cap[!cap$sex %in% "J" & !is.na(cap$ring),]
-ring.sex2 <- paste(nojna$ring, nojna$sex, sep="-")
-rs2 <- as.data.frame(table(ring.sex2))
-
-diff1 <- setdiff(rs1$ring2.sex1,rs2$ring.sex2) #those that are in birdref but not in captures 28, most are ones with conflicting sex
-diff2 <- setdiff(rs2$ring.sex2, rs1$ring2.sex1) #those that are in captures but not in birdref 7
-      #CA1674 was in this list when code was run in April before ring corrections, in new run this is missing: check
-      bre.stacked[bre.stacked$ring2 %in% "CA1674",] #it was captured in focal year but was not in birdref! This has been corrected 01/06/2015
-
-# > diff #the rest are missing since they have conflicting sexes
-#  "CA1677-F" *caught with mistnet
-#  "CA2929-F" **missing from alex
-#  "CA4094-M" **missing from alex
-
-bre.stacked[bre.stacked$ring2 %in% "CA1047",] 
-
-cap[cap$ring %in% "CA1677",]
-#diff2
-# [1] "CA1674-F"  *from nest 2009-S-32 corrected 01/06/2015
-# [2]"CA1677-M" *caught with mistnets
-# [3] "CA2756-M" *former captures were sexed as F
-# [4]"CA3050-M" *no nest in captures, no notes, caught with mistnet??
-# [5] "CA3056-F"  *appears as M in bird ref but as F in captures 
-# [6]"CA3066-M" *appears as F in bird ref but as M in captures MOL = M (2010-S-15)
-# [7] "CA3072-M" *field and mol sex conflicting
-# [8]"CA3110-NA"*lost ring
-# [9] "CA3658-F" *field and mol sex conflicting
-# [10]"CA3708-M" *field and mol sex conflicting
-
-
+#---------------------------------------------------------------------------------------------
+#ADD mol sex first, in MAD, copied this section from below
+names(bre.stacked)
 #add column with mol.sex in bre.stacked
 names(sex)
 
-for (i in 1:length(bre.stacked$code)){
+#First create ID of individuals that will be used to assign sex: code for ones with no metal and ring for ones with metal ring:
+bre.stacked$id.adult <- NA
+
+bre.stacked[is.na(bre.stacked$ring) & !is.na(bre.stacked$code), "code"]
+bre.stacked$id.adult[is.na(bre.stacked$ring) & !is.na(bre.stacked$code)]<-bre.stacked[is.na(bre.stacked$ring) & !is.na(bre.stacked$code), "code"]
+
+bre.stacked[!is.na(bre.stacked$ring), "ring"]
+bre.stacked$id.adult[!is.na(bre.stacked$ring)]<-bre.stacked[!is.na(bre.stacked$ring), "ring"]
+#-----------------------------------------
+bre.stacked$mol_sex <- NA
+for (i in 1:length(bre.stacked$year)){
   
-  bre.stacked$mol_sex[i] <- sex$sex[match(bre.stacked$ring2[i], sex$ring)]
+  bre.stacked$mol_sex[i] <- sex$sex[match(bre.stacked$id.adult[i], sex$ring)]
 }
 
+for (i in 1:length(cap$year)){
+  
+  cap$mol_sex[i] <- sex$sex[match(cap$ring[i], sex$ring)]
+}
+
+table(cap$mol_sex, useNA="always")
+# ?    F FAIL    M <NA> 
+#   3 1473    1 1446 2745 
+
+cap2<-cap
+cap<-cap2
+
+for(i in 1:length(cap$year)){
+  if(is.na(cap$mol_sex[i]) &is.na(cap$ring[i]) & !is.na(cap$code[i])){
+    cap$mol_sex[i] <- sex$sex[match(cap$code[i], sex$ring)]
+  }
+}
+
+table(cap$mol_sex, useNA="always")
+# ?    F FAIL    M <NA> 
+#   3 1538    1 1541 2585 
+#cap$sex
+
 tail(bre.stacked[!is.na(bre.stacked$mol_sex),])
+table(bre.stacked$mol_sex, useNA="always")
+#   ?    F    M <NA> 
+# 4  842  826 2104
+#-------------------------------------------------------
+#Add marker saying if individuals in Birdref were captured that year or not.-----------------------------
+#This will allow to see whether id is reliable or not and check whether ids match
+bre.stacked$id.nest.sex <- paste(bre.stacked$nest.id, bre.stacked$mol_sex, sep="-") #NEEDS MOL SEX IN BIRDREF
 
-#add comment on rings with conflicting sex from list sent to Tess
-names(bre.stacked)
-list.conflictingsex <-c("CA1068","CA1148","CA3066","CA3082","CA1136","CA2721","CA3054","CA3056","CA3413")
-bre.stacked$comments_stdfile[bre.stacked$ring %in% c("CA1068","CA1148","CA3066","CA3082","CA1136","CA2721","CA3054","CA3056","CA3413")]<-""
-bre.stacked$comments_stdfile[bre.stacked$ring2 %in% c("CA1068","CA1148","CA3066","CA3082","CA1136","CA2721","CA3054","CA3056","CA3413")]<-"sex needs to be checked (CCI 2015)"
-bre.stacked[bre.stacked$ring2 %in% c("CA1068","CA1148","CA3066","CA3082","CA1136","CA2721","CA3054","CA3056","CA3413"),]
+table(cap$species)
+cap$id.nest <- paste(cap$year, cap$species, cap$nest, sep="-")
+cap$id.nest.sex<-paste(cap$id.nest, cap$mol_sex, sep="-")
 
-# names(cap.std)
-# cap.std[cap.std$ring %in% c("CA1068","CA1148","CA3066","CA3082","CA1136","CA2721","CA3054","CA3056","CA3413"), c("year","ring","sex","comments_field")]
-# sex[sex$ring %in% c("CA1068","CA1148","CA3066","CA3082","CA1136","CA2721","CA3054","CA3056","CA3413"), c("ring","sex")]
+bre.stacked$captured_in_focalyear <- ifelse(bre.stacked$id.nest.sex %in% cap$id.nest.sex[!cap$age %in% "J" & cap$site %in% "Andavadoaka"], "yes", "no")
+table(bre.stacked$captured_in_focalyear, useNA="always")
+# no  yes <NA> 
+#   1700 2076    0  
 
+str(bre.stacked[!is.na(bre.stacked$id.adult) & bre.stacked$captured_in_focalyear %in% "no",]) #376 MAD not captured in focal year
+str(bre.stacked[!is.na(bre.stacked$id.adult) & bre.stacked$captured_in_focalyear %in% "yes",])#1868 captured in focal year
 
-#check other conflicting sexes in birdref with mol_sex
-bre.stacked$sex.equal<-ifelse(bre.stacked$sex==bre.stacked$mol_sex, "","check")
-
-check.sex <- bre.stacked[bre.stacked$sex.equal %in% c("check")& !bre.stacked$sex%in%"J",c("nest","ring","sex","mol_sex","sex.equal","comments_field","comments_stdfile")]
-str(check.sex) #37 obs
-str(check.sex[!check.sex$ring %in% list.conflictingsex,]) #30 obs
-
-#colnames(bre.stacked)[9]<- "field_sex"
+y<-bre.stacked[!is.na(bre.stacked$id.adult) & bre.stacked$captured_in_focalyear %in% "no",] #see a random sample to see if anything looks suspicious
+y[sample(1:nrow(y),30, replace=F),]
 
 
+# #check that sex of rings2 correspond to sex of captures and molecular sex
+ind<-which(nchar(bre.stacked$ring)!=7) #740 cases with "unknown" metal ring (individuals not captured)
+str(bre.stacked[-ind,]) #2105 cases with rings
+ringsonly<-bre.stacked[-ind,]
+
+ring2.sex1 <- paste(ringsonly$ring, ringsonly$mol_sex, sep="-")
+rs1<- as.data.frame(table(ring2.sex1))
+
+table(cap$age)
+cap[is.na(cap$ring),]
+nojna <- cap[!cap$age %in% "J" & !is.na(cap$ring) & cap$site %in% "Andavadoaka",]
+ring.sex2 <- paste(nojna$ring, nojna$mol_sex, sep="-")
+rs2 <- as.data.frame(table(ring.sex2))
+
+diff1 <- setdiff(rs1$ring2.sex1,rs2$ring.sex2) #those that are in birdref but not in captures 26, most are ones with conflicting sex
+diff2 <- setdiff(rs2$ring.sex2, rs1$ring2.sex1) #those that are in captures but not in birdref 79!!! too many...and no chicks here
+      #CA1674 was in this list when code was run in April before ring corrections, in new run this is missing: check
+
+#--------------debug/check ids
+bre.stacked[bre.stacked$ring %in% "FH80190",] 
+cap[cap$ring %in% "FH80190",]
+nojna[nojna$ring %in% "FH47149",]
+
+bre.stacked[bre.stacked$nest.id %in% "2015-KiP--203b",]
+cap[cap$id.nest %in% "2012-WfP-102",]
+
+#-------------------------------------
 #----------------------------------------------------------------------------
 
 #  	Check that rings match rings in captures using nest numbers
