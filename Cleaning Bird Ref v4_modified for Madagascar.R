@@ -735,42 +735,113 @@ cap[cap$ring %in% "FH73004",]
 #--------------------------------------------------------------------------------
 #See how many nests in birdref have rings or codes known but where adults were not captured in focal year
 names(bre.stacked)
-str(bre.stacked[!is.na(bre.stacked$id.adult) & bre.stacked$captured_in_focalyear %in% "no",]) #377
+table(bre.stacked$year)
+str(bre.stacked[!is.na(bre.stacked$id.adult) & bre.stacked$captured_in_focalyear %in% "no",c("code","ring")]) #377
 
-adults.not.captured <- bre.stacked[!is.na(bre.stacked$id.adult) & bre.stacked$captured_in_focalyear %in% "no", c(1:3,21,11,22,14,24)]
+adults.not.captured <- bre.stacked[!is.na(bre.stacked$id.adult) & bre.stacked$captured_in_focalyear %in% "no", c(1:3,21,18,11,22,14,24)]
 adults.not.captured$age <- "A"
 names(adults.not.captured)
-colnames(adults.not.captured)<-c("year", "site", "nest", "ring", "species","mol_sex", "id.nest","captured_in_focalyear","age")
+colnames(adults.not.captured)<-c("year", "site", "nest", "ring", "code","species","mol_sex", "id.nest","captured_in_focalyear","age")
 
+#-----omit individual with wrong ring FH47178 should be FH47187
+ind<-which(adults.not.captured$ring %in% "FH47178")
+adults.not.captured[ind,] 
+adults.not.captured<-adults.not.captured[-ind,]
+#-------------------------
 #add these ids to captures
 names(cap)
-inds.captured<-cap[,c(1:4,16,17,27,28)]
+cap$id.ind<-NA
+cap[is.na(cap$ring) & !is.na(cap$code), "code"]
+cap$id.ind[is.na(cap$ring) & !is.na(cap$code)]<-cap[is.na(cap$ring) & !is.na(cap$code), "code"]
+
+cap[!is.na(cap$ring), "ring"]
+cap$id.ind[!is.na(cap$ring)]<-cap[!is.na(cap$ring), "ring"]
+
+
+inds.captured<-cap[cap$year>2007,c(1:3,31,12,16,17,27,28)]
+table(inds.captured$year)
 inds.captured$captured_in_focalyear <- "yes"
+colnames(inds.captured)[4]<-"ring"
 names(inds.captured)
+
+#merge captured and uncaptured
+library(gtools)
+capt.create.bref<-smartbind(inds.captured, adults.not.captured)
+str(capt.create.bref) #4879 obs
+
+#-------------------------------------------------------------------------------
+#.------------------------------------------------------------------------------
+#Create New BirdRef file from captures and ids of uncaptured birds from original birdref file
+capt<-capt.create.bref
+capt$NestID <- paste(capt$year, capt$site, capt$species, capt$nest, sep='-') # Create unique nestIDs
+
+nests <- sort(unique(capt$NestID)) # list of unique nest IDs in capture file
+birdref <- array(, c(length(nests), 16)); birdref <- as.data.frame(birdref) # create empty birdref
+names(birdref) <- c("year", "site", "nest","species", "parent1","code.p1", "parent2", "code.p2","chick1", "chick2", "chick3", "mol_sex_p1", "mol_sex_p2", "captured_focalyear_p1", "captured_focalyear_p2", "comments_stdfile") # name columns in birdref
+birdref$error.p <- NA 
+birdref$error.ch <-NA
 
 library(gtools)
 
-capt.create.bref<-smartbind(inds.captured, adults.not.captured)
-str(capt.create.bref) #6045 obs
+for (i in 1:nrow(birdref)){
+  print(i)
+  n <-nests[i]
+  cc <- capt[capt$NestID%in%n,]
+  birdref[i,c("year","site", "nest", "species")] <- cc[1,c("year","site", "nest", "species")]
+  
+  # Add p1 and p2 ring numbers to birdref
+  p.ring <- unique(cc$ring[cc$age %in% "A"])
+  p.code <- unique(cc$code[cc$age %in% "A"])
+  capt.focal <- cc$captured_in_focalyear[cc$age %in% "A"]
 
+  if(length(p.ring)==1 | length(p.code)==1){
+    birdref[i, "parent1"] <- p.ring[1]
+    birdref[i, "code.p1"] <- p.code[1]
+    birdref[i, "captured_focalyear_p1"] <- capt.focal[1]
+  }
+    
+  if(length(p.ring)>1 | length(p.code)>1 | length(p.ring)<3 | length(p.code)<3){
+    birdref[i, "parent1"] <- p.ring[1]
+    birdref[i, "code.p1"] <- p.code[1]
+    birdref[i, "captured_focalyear_p1"] <- capt.focal[1]
+    birdref[i, "parent2"] <- p.ring[2]
+    birdref[i, "code.p2"] <- p.code[2]
+    birdref[i, "captured_focalyear_p2"] <- capt.focal[2]
+  }
+  # Error message if more than 2 adult ring numbers per nestID
+  if(length(p.ring)>2 | length(p.code)>2){
+    birdref$error.p[i] <-capture.output(cat ("More than 2 parents?", n, " - ", as.character(p.ring, p.code), "\n"))
+    }
+  
+  #Add chick ring number to birdref
+  ch <- unique(cc$ring[cc$age%in%'J'])
+  birdref[i, c("chick1", "chick2", "chick3")] <- ch[1:3]
+  # Error message if more than 3 chick ring numbers per nestID
+  if(length(ch)>3){
+    birdref$error.ch[i]<-capture.output(cat('CHICK', n, " - ", as.character(ch), "\n"))}
+ 
+}
 
-#.------------------------------------------------------------------------------
-#bre.stacked$comments_stdfile <- NA
+#---------------debug------------------------
+tail(birdref, n=50)
+str(birdref[!is.na(birdref$error.ch),]) #12 with error in chicks
+str(birdref[!is.na(birdref$error.p),]) #37 with error in parents
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #------------------------------------------------------------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #FINAL CORRECTIONS
 
 #some have mistaken rings...others are nests missing from BirdRef:
-to.write <- bre1#[,c(2:9,14:21)]
+#to.write <- bre1#[,c(2:9,14:21)]
 #to.write[to.write$year ==2011 & to.write$site =="S" & to.write$nest==4,]
 #------------------------------------------------------------------------------------------
 #-------------------------------------Write BirdRef_std------------------------------------
 #------------------------------------------------------------------------------------------
 
-setwd("F:/Plovers/KP data management/Maintenance/Cleaning data code/Applying code to populations/Maio 2007-2015/output")
+setwd("F:/Plovers/3rd Chapter/input/Madagascar")
 
-write.csv(to.write, "BirdRef_Maio_2009-2015_stdfile21Jan2016.csv")
+write.csv(birdref, "BirdRef_Mad_stdfile29Mar2016.csv")
 
 
 #------------------------------------------------------------------------------------------
