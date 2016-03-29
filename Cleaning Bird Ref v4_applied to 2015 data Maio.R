@@ -562,12 +562,12 @@ diff2 <- setdiff(rs2$ring.sex2, rs1$ring2.sex1) #those that are in captures but 
       #CA1674 was in this list when code was run in April before ring corrections, in new run this is missing: check
 
 #--------------debug/check ids
-bre.stacked[bre.stacked$ring %in% "FH80190",] 
-cap[cap$ring %in% "FH80190",]
+bre.stacked[bre.stacked$ring %in% "FH72579",] 
+cap[cap$ring %in% "FH72579",]
 nojna[nojna$ring %in% "FH47149",]
 
-bre.stacked[bre.stacked$nest.id %in% "2015-KiP--203b",]
-cap[cap$id.nest %in% "2012-WfP-102",]
+bre.stacked[bre.stacked$nest.id %in% "2014-WfP-Wlaza",]
+cap[cap$id.nest %in% "2014-WfP-Wlaza",]
 
 #-------------------------------------
 #----------------------------------------------------------------------------
