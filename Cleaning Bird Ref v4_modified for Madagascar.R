@@ -27,6 +27,8 @@
 
 #25/03/2016 3rd log up to line 571, found missing/wrong rings in birdref
 
+#29/03/2016 Re-made bird ref using captures and ids from adults which were not captured (taken from original Birdref file)
+
 #--------------------------------------------------
 #Madagascar
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
@@ -841,7 +843,7 @@ str(birdref[!is.na(birdref$error.p),]) #37 with error in parents
 
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
 
-write.csv(birdref, "BirdRef_Mad_stdfile29Mar2016.csv")
+write.csv(birdref, "BirdRef_Mad_stdfile_CCI_29Mar2016.csv")
 
 
 #------------------------------------------------------------------------------------------
