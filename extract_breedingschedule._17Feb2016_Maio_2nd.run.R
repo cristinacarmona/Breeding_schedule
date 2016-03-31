@@ -37,9 +37,11 @@
 #17/03/2016 3rd log - Continue from 663, clear errors found in BirdRef, created Cleaning brood fates.R
 #18/03/2016 4th log - Modified line 393....
 #21/03/2016 5th log - Issue2 - fixed duplicates (also duplicates need to be modified only to Andavadoaka and omit XX ambiguous codes!)
-#24/03/2016 6th log - Stopped this code, cleaning bird ref first, 
-                    #Issue 4 OMIT JUVENILES???? 
+#24/03/2016 6th log - Stopped this code, cleaning bird ref first, finished cleaning bird ref 29/03/2016
+                    #Issue 4 OMIT JUVENILES from list of duplicates???? 
 
+#30/03/2016 7th log - Start re-running code again using new BirdRef file produced. 
+#31/03/2016 8th log - Continue re-running code
 
 #---------------------------------------------------------------
 #Maio
@@ -66,7 +68,7 @@ ls()
 working.list <- import.list
 #Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
 #Maio
-names(working.list) <- c("bf","br","cap","sex","sex2","ne","re2","re")
+names(working.list) <- c("bf1","br","br3","bf","cap3","cap","sex","ne","re")
 
 
 attach(working.list)
@@ -93,26 +95,26 @@ names(br)
 
 str(br)#CEUTA:652 obs, after corrections 653, new BirdSoc file Clemens 2013 - 683 obs
         #MAIO: 1006 obs
-        #MAD: 2416
+        #MAD: 2416, 2nd run 2114
 names(bf)
 str(bf)#CEUTA:3238 obs, 3310 obs new file 
         #MAIO: 3006 obs
-        #MAD:1499
+        #MAD:1499, 2nd run 1094
 names(cap)
 str(cap)#CEUTA:2375, 2460 obs new file (up to 2013); new Luke's file: 2375
           #MAIO: 1935 obs
-          #MAD: 5372
+          #MAD: 5372, 2nd run 5668
 #str(cap[!is.na(cap$comments_stdfile) & cap$comments_stdfile =="duplicate",])
       #MAIO: 86 duplicates
 names(sex)
 names(ne)
 str(ne)#CEUTA:659, 690 obs new file (up to 2013); new Luke's file: 659
         #MAIO: 699 obs
-        #MAD: 2762
+        #MAD: 2762, 2nd run 2906
 names(re)
 str(re)#CEUTA:4148, 4165 obs new file; new Luke's file: 4302
         #MAIO: 5026 obs
-        #MAD: 6772
+        #MAD: 6772, 2nd run 7857
 
 library(stringr)
 
@@ -127,7 +129,7 @@ library(stringr)
 #1. List of duplicates-----------------------
 #a.0) correct codes in with different structure: e.g. WX.BX|BX.YM_802109760
 #unique(cap[nchar(cap$code)>11, "code"]) #nchar should be 7 in MAD: W.B|B.M
-unique(cap[nchar(cap$code)!=7, "code"]) #112 in Mad, no corrections can be made
+unique(cap[nchar(cap$code)!=7, "code"]) #119 in Mad, no corrections can be made
 
         #Check general format in captures and resightings:
 #regexp1 <- "([RGLBYOWXMSsP]{2})\\.([RGLBYOWXMSsP]{2})\\|([RGLBYOWXMSsP]{2})\\.([RGLBYOWXMSsP]{2})$"
@@ -150,7 +152,7 @@ str(cap[-ind,c("year","site","nest","code")])
 # 1106 2008    A    1          XX.YR|XX.WWM
 
 
-cap[-ind,c("code")] #Mad: 240 with wierd codes...and several NAs which belong to Juveniles?
+cap[-ind,c("code")] #Mad: 259 with wierd codes...and several NAs which belong to Juveniles?
 #Previous file to Luke's (CEUTA):
 # [1] "BX.WX|SX."    "XX.WB|XX.RWM" "XX.WX|XX.WMY"
 # [4] "XX.YR|XX.WWM" "XX.WB|XX.RWM" "BX.WX|SX."   
@@ -165,10 +167,16 @@ cap[-ind,c("code")] #Mad: 240 with wierd codes...and several NAs which belong to
 # "W.M|W.K"   "B.M|B.K"   "G.M|G.K"   "X.X|X.L4"  "X.X|X.L4"  "O.W|B.MK"  "R.B|W.MK"  "X.X|X.G3"  "X.X|X.L6"  "YY.X|X.WK"
 
 names(re)
-re[-ind2,c("year","code","sex")] #Mad: 90 codes not matching format; 33 after cleaning, but some might be alright as K is not included in allowed letters
+str(re[-ind2,c("year","code","sex")])#Mad: 81 in std file...still some obs have wrong codes
+re[-ind2,c("year","code","sex")] #Mad: previous to std file 90 codes not matching format; 33 after cleaning, but some might be alright as K is not included in allowed letters
 re.incomplete.codes<-re[-ind2,"code"]
 
-
+#---------
+#corrected following codes (31/03/2016 in std file), added |
+# L.G.M.O <NA>
+# R.Y.M.B <NA>
+# B.BM.B <NA>
+#----------
 cap[nchar(cap$ring)<6,] #MAIO: those without metal from 2007 and 2012; MAD: >295, only colour rings J or A
 cap[nchar(cap$ring)>7, "ring"] #MAIO: 0; MAD 0
 
@@ -190,7 +198,7 @@ table(cap$sex)
 table(cap$age)
 # A    C    J 
 # 2646   27 2699 
-#cap$age <- gsub("X","A", cap$age)
+cap$age <- gsub("C","J", cap$age)
 #table(cap$age)
 
 # #other errors found in Ceuta:
@@ -270,7 +278,7 @@ cap$sp.sex.code <- paste(cap$species,"_", cap$code, "-",cap$sex, sep="")
 # 
 # library(stringr)
 #unique.code.ring<- unique(cap$code.ring)
-unique.code.ring<- unique(cap$sp.code.ring[cap$site %in% "Andavadoaka"]) #3017 unique sp.code.ring
+unique.code.ring<- unique(cap$sp.code.ring[cap$site %in% "Andavadoaka" & cap$age %in% "A"]) #3017 unique sp.code.ring
 
 lookdup <-strsplit(unique.code.ring, "-")
 
@@ -280,7 +288,7 @@ ldup <- ldply(lookdup) #turn list into two columns
 colnames(ldup) <- c("sp","code","ring")  
 # 
 #-------debug-----
-head(ldup[order(ldup$ring),], n=1300)
+head(ldup[order(ldup$code),], n=1300)
 #----------------
 
 #Get rid of ambiguous codes to delete duplicates:
@@ -315,7 +323,7 @@ x0 <- ldup[!str_detect(ldup$code, pattern=pat0),] #allow no Xs in codes (MAD)
 str(x) #CEUTA: 529; 555; 530
       #Mad: 3015
 
-str(x0) #1787
+str(x0) #MAD: 1676
 x0[order(x0$code),]
 # 
 library(stringr) 
@@ -333,7 +341,7 @@ x0$sp.code <- paste(x0$sp, x0$code, sep="-")
 
 ind <- which(duplicated(x0$sp.code) | duplicated(x0$sp.code, fromLast=TRUE))
 str(x0[ind,]) #MAIO 34; 38; 36
-#               #MAD: 291
+#               #MAD: 168
 # x1 <- x[ind,]
 x1 <- x0[ind,]
 x1[order(x1$code),]
@@ -346,7 +354,7 @@ x1[order(x1$code),]
 # x1[order(x1$sp_code),]
 # 
 dupl <- x1 #List of rings with duplicated codes 
-str(dupl) #36 Ceuta, 291 in Mad including Juv
+str(dupl) #36 Ceuta, 168 in Mad without Juv
 # #-------------debug duplicates-------------------
 # cap[cap$ring %in% "CA2370",]
 # cap[cap$ring %in% "CV007",]
@@ -361,19 +369,22 @@ rings.br <- union(br$parent1, br$parent2)
 
 ind <- which(rings.br %in% dupl$sp_code | rings.br %in% dupl$ring)
 omit1 <- rings.br[ind] #list of rings to omit MAD: 876 individuals need to be omitted
-rings.br[-ind]#Mad: 2008 individuals will be included
+rings.br[-ind]#Mad: 1831 individuals will be included
   
 #---------------MAD:Check state of birdref-------------------
 table(br$year)
 table(br$site)
 table(br$nest)
 
-names(br)[12]<-"species"
+br1<-br
+br<-br1
+
+#names(br)[12]<-"species"
 table(cap$species)
-table(br$species) #some need re-labelling
-br$species[br$species %in% "KIP"] <- "KiP"
-br$species[br$species %in% "WFP"] <- "WfP"
-br$species[br$species %in% "WP"] <- "WfP"
+#table(br$species) #some need re-labelling
+# br$species[br$species %in% "KIP"] <- "KiP"
+# br$species[br$species %in% "WFP"] <- "WfP"
+# br$species[br$species %in% "WP"] <- "WfP"
 
 #------------------------------------------------
 #---------------------------------------------------------------------
@@ -426,8 +437,8 @@ p2.with.dupl <- br[!is.na(br$parent2) &
 p2 <- p2.with.dupl[!p2.with.dupl$parent2 %in% omit1,]
 p2$parent2
 
-colnames(p1)[c(6,7)] <- c("ring","mate_ring") #SITE CHANGE
-colnames(p2)[c(7,6)] <- c("ring","mate_ring") #SITE CHANGE #FOUND ERROR...18/03/2016 column numbers had to be changed
+colnames(p1)[c(5,6,7,8)] <- c("ring","code","mate_ring", "mate_code") #SITE CHANGE
+colnames(p2)[c(7,8,5,6)] <- c("ring","code","mate_ring","mate_code") #SITE CHANGE #FOUND ERROR...18/03/2016 column numbers had to be changed
 
 #--------------------------------------
 
@@ -436,9 +447,11 @@ ids.1 <- as.data.frame(rbind(p1,  p2))
 head(ids.1)
 tail(ids.1)
 ids.1$ring
+
 #pat<- "XX"#get rid of ambiguous codes from list of ids
-pat<- "UNK"
-ids2 <- ids.1[!str_detect(ids.1$ring, pattern=pat),] 
+#pat<- "UNK"
+#ids.1[str_detect(ids.1$ring, pattern=pat),] 
+#ids2 <- ids.1[!str_detect(ids.1$ring, pattern=pat),] 
 
 #Maio:
 #ids.1[str_detect(ids.1$ring, pattern=pat),"ring"]
@@ -449,25 +462,26 @@ ids2 <- ids.1[!str_detect(ids.1$ring, pattern=pat),]
 #ids$ring
 
 #MAD: omit sites not in Andavadoaka
+ids2<-ids.1
 table(ids2$site)
 ids<-ids2[ids2$site %in% "Andavadoaka",]
-str(ids) #1330 obs
+str(ids) #2047 obs
 
 table(ids$year)
 
 
 #head(ids)
-str(ids.1) #MAIO: 996 obd (up to 2014), 1169 (up to 2015), 1166 (2nd run?)
-str(ids2) #MAIO: 1126
+str(ids.1) #MAD: 2337
+str(ids2) #MAD: 2337
 #str(ids) #MAIO: 958 obs (up to 2014), 1129 (up to 2015)
           #Ceuta: 1031 obs (up to 2012)
 #table(ids$year)
   #ids$ring
-#--------------debug
-#look for nest 2014-WfP-106...which disappears in ids.final:
-head(ids)
-ids[ids$ring %in% "FH69208",] #doesn't appear
-omit1[omit1 %in% "FH69208"] #it's in list of omit1
+#--------------debug from further down the code...
+# #look for nest 2014-WfP-106...which disappears in ids.final:
+# head(ids)
+# ids[ids$ring %in% "FH69208",] #doesn't appear
+# omit1[omit1 %in% "FH69208"] #it's in list of omit1
 #--------------------------------------------------
 #   a.2 Add colour combinations/rings:
         #use Captures but restrict to adults, only 
@@ -484,7 +498,7 @@ table(cap$sex)
 #Ceuta & Mad: 
 table(cap$age)
 
-ids$code <- NA
+#ids$code <- NA #this was added in std_file
 
 #MAIO:
 #cap.1 <- cap[cap$sex !="J",]#restrict captures to adults
