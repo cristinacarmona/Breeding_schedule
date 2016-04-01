@@ -95,7 +95,7 @@ names(br)
 
 str(br)#CEUTA:652 obs, after corrections 653, new BirdSoc file Clemens 2013 - 683 obs
         #MAIO: 1006 obs
-        #MAD: 2416, 2nd run 2114
+        #MAD: 2416, 2nd run 2080
 names(bf)
 str(bf)#CEUTA:3238 obs, 3310 obs new file 
         #MAIO: 3006 obs
@@ -317,7 +317,7 @@ pat0<-"X"
 #   x <- ldup[!str_detect(ldup$code, pattern=pat) #MAd
 #              & !str_detect(ldup$code, pattern=pat2)
 #             & !str_detect(ldup$code, pattern=pat3),] 
-
+library(stringr)
 x0 <- ldup[!str_detect(ldup$code, pattern=pat0),] #allow no Xs in codes (MAD)
 
 str(x) #CEUTA: 529; 555; 530
@@ -369,7 +369,7 @@ rings.br <- union(br$parent1, br$parent2)
 
 ind <- which(rings.br %in% dupl$sp_code | rings.br %in% dupl$ring)
 omit1 <- rings.br[ind] #list of rings to omit MAD: 876 individuals need to be omitted
-rings.br[-ind]#Mad: 1831 individuals will be included
+rings.br[-ind]#Mad: 1794 individuals will be included
   
 #---------------MAD:Check state of birdref-------------------
 table(br$year)
@@ -424,21 +424,23 @@ library(stringr)
 #a.1 Madagascar:
 
 head(br)
-table(br$parent1)
+table(br$parent1)#2080
 
+br[is.na(br$parent1) & !br$parent1 %in% "X.X|X.X",]
 p1.with.dupl <- br[!is.na(br$parent1) &
-                        br$parent1 != "X.X|X.X",]
+                        !br$parent1 %in% "X.X|X.X",]
+p1.with.dupl$parent1 #17671
 names(p1.with.dupl)
 p1 <-p1.with.dupl[!p1.with.dupl$parent1 %in% omit1, ] 
-p1$parent1
+p1$parent1 #1629
 
 p2.with.dupl <- br[!is.na(br$parent2) & 
                      !br$parent2 %in% c("X.X|X.X","UNK"),] #SITE CHANGE
 p2 <- p2.with.dupl[!p2.with.dupl$parent2 %in% omit1,]
-p2$parent2
+p2$parent2 #647
 
-colnames(p1)[c(5,6,7,8)] <- c("ring","code","mate_ring", "mate_code") #SITE CHANGE
-colnames(p2)[c(7,8,5,6)] <- c("ring","code","mate_ring","mate_code") #SITE CHANGE #FOUND ERROR...18/03/2016 column numbers had to be changed
+colnames(p1)[c(6,7,8,9)] <- c("ring","code","mate_ring", "mate_code") #SITE CHANGE
+colnames(p2)[c(8,9,6,7)] <- c("ring","code","mate_ring","mate_code") #SITE CHANGE #FOUND ERROR...18/03/2016 column numbers had to be changed
 
 #--------------------------------------
 
@@ -465,14 +467,15 @@ ids.1$ring
 ids2<-ids.1
 table(ids2$site)
 ids<-ids2[ids2$site %in% "Andavadoaka",]
-str(ids) #2047 obs
+str(ids) #1990 obs
 
 table(ids$year)
 
 
 #head(ids)
-str(ids.1) #MAD: 2337
-str(ids2) #MAD: 2337
+str(ids.1) #MAD: 2276
+str(ids2) #MAD: 2276
+str(ids) #MAD:1990
 #str(ids) #MAIO: 958 obs (up to 2014), 1129 (up to 2015)
           #Ceuta: 1031 obs (up to 2012)
 #table(ids$year)
@@ -492,6 +495,7 @@ ids2<-ids #rename
 ids<-ids2
 
 table(cap$year)
+table(cap$site)
 table(ids$year)
 table(cap$sex)
 
@@ -513,7 +517,7 @@ cap.1[grep(cap.1$code, pattern=pat),c("year","ring","code")]
 cap.2<-cap.1[-grep(cap.1$code, pattern=c(pat)),] 
 table(cap.2$code)
 cap.1<-cap.2[-grep(cap.2$code, pattern=c(pat2)),]
-
+table(cap.1$code)
 #ind<-which(nchar(ids$ring)>9) #6 in Maio (more in 2nd run), 18 in Ceuta
 
 #Unecessary with Std BirdRef file
@@ -536,11 +540,97 @@ cap.1<-cap.2[-grep(cap.2$code, pattern=c(pat2)),]
 
 
 #------------------------
-ids[is.na(ids$code), "code"]
+#In Madagascar some codes were assigned to adults when they were juveniles, so explore if the most recent code can be used instead of the code for the code at the first appearance as an adult-----------
 
+ids[is.na(ids$code)| ids$code %in% "inconsistent codes", ]
+rings.explore<-ids[is.na(ids$code)| ids$code %in% "inconsistent codes", "ring"]#82
+unique(rings.explore)#69 from the list of birds with no code or inconsistent codes these rings will be the ones where new codes need to be assigned
+# [1] "FH69234" "FH68731" "FH69181" "FH69116" "FH17810" "FH47901" "FH47160" "FH47260" "FH17846" "FH17803" "FH47983" "FH17804" "FH17280"
+# [14] "FH68858" "FH47266" "FH47967" "FH68899" "FH72195" "FH68869" "FH17854" "FH17877" "FH47541" "FH69131" "FH72878" "FH73148" "FH73147"
+# [27] "FH69111" "FH72248" "FH69204" "FH80050" "FH73433" "FH17834" "FH72704" "FH73437" "FH17826" "FH73415" "FH68762" "FH73404" "FH47804"
+# [40] "FH73440" "FH73576" "FH69209" "FH47370" "FH69254" "FH47981" "FH72432" "FH68802" "FH72824" "FH68721" "FH69067" "FH47040" "FH47993"
+# [53] "FH72481" "FH47025" "FH47947" "FH69237" "FH68796" "FH68850" "FH68981" "FH72277" "FH73253" "FH73320" "FH73436" "FH47944" "FH47123"
+# [66] "FH47595" "FH17819" "FH73568" "FH69256"
+a<-cap[cap$ring %in% rings.explore,c("year","date","ring","code","age")]
+
+a<-a[order(a$ring, a$year,a$date),]
+t(a)
+b<-table(a$ring)
+b
+
+# cap.1[cap.1$ring %in% "FH69116",]
+# cap[cap$ring %in% "FH72678",]
+# cap[cap$code %in% "L.Y|M.O",]
+
+#send inconsistent code note to comments--------
+ids[ids$code %in% "inconsistent codes", "comments_stdfile"]<-"inconsistent codes?"
+#-------------------
+rownames(a)<-c(1:length(a$ring))
+#i<-3782
+#a[i,]
+a$ring.repeat<-NA
+a$ring.repeat[1]<-1
+a$ring.repeat<-as.numeric(a$ring.repeat)
+
+a$code.repeat<-NA
+a$code.repeat[1]<-1
+a$code.repeat<-as.numeric(a$code.repeat)
+
+
+for(i in 2:length(a$ring)){
+  #print(i)
+  if(a$ring[i] == a$ring[i-1]){
+    a$ring.repeat[i] <- a$ring.repeat[i-1]+1
+  }else{
+    if(a$ring[i] != a$ring[i-1]){
+      a$ring.repeat[i] <- 1
+    }
+  }
+}
+
+for(i in 2:length(a$ring)){
+  #print(i)
+  #warnings(1)
+  if(a$code[i] == a$code[i-1]){
+    a$code.repeat[i] <- a$code.repeat[i-1]+1
+  }else{
+    if(a$code[i] != a$code[i-1]){
+      a$code.repeat[i] <- 1
+    }
+  }
+}
+
+#List with rings that have codes that changed
+code.change<-a[a$code.repeat != a$ring.repeat,]
+unique(code.change$ring)#13 rings, also with ALL captures:
+
+# [1] "FH17803" "FH17804" "FH17819" "FH17846" "FH17877" "FH47123" "FH47804"
+# [8] "FH47983" "FH69111" "FH69116" "FH69209" "FH72277" "FH72432"
+
+#try with ALL captures: ,/ same result
+# b<-cap[!is.na(cap$ring),c("year","date","ring","code","age")]
+# a<-b #and rerun last for loops from line 556
+
+#----------------------------------------------------------------
+#debug for loop:
+which(ids$ring %in% "FH17803")
+i<-539
+ids[i,]
+#---------------
 for(i in 1:length(ids$year)){ #if code is empty, search ring in capt and fill it
-  if(is.na(ids$code[i]))
-    ids$code[i] <- cap.1$code[match(ids$ring[i], cap.1$ring)]    
+  if(is.na(ids$code[i])| ids$comments_stdfile[i] %in% "inconsistent codes"){
+    if(!ids$ring[i] %in% code.change$ring){
+      ids$code[i] <- cap.1$code[match(ids$ring[i], cap.1$ring)] #cap.1 omits juveniles
+    }else{
+      if(ids$ring[i] %in% code.change$ring){
+        ind<-which(cap$ring %in% ids$ring[i])
+        cc<-cap[ind,]
+        ids$code[i] <- cap$code[] 
+      }
+    }
+  
+  }
+   
 }
 
 # for(i in 1:length(ids$year)){ #if ring has a code, search ring using code and replace#NOT IN MAD
