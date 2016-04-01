@@ -515,25 +515,29 @@ table(cap.2$code)
 cap.1<-cap.2[-grep(cap.2$code, pattern=c(pat2)),]
 
 #ind<-which(nchar(ids$ring)>9) #6 in Maio (more in 2nd run), 18 in Ceuta
-ind<-which(nchar(ids$ring)>7) #in Mad only those without any metal
-ids[ind,]
 
-for(i in 1:length(ids$year)){ #if code is under ring...put it in code
-#  if(nchar(ids$ring[i])>9) #Ceuta and Maio
-  if(nchar(ids$ring[i])>7) #Mad...however some codes have exactly 7 char as metal rings...W.X|M.X so it creates errors
-  ids$code[i] <- ids$ring[i]
-}
-
-for(i in 1:length(ids$year)){
-  pat <- "\\|"
-  if(length(grep(ids$ring[i], pattern=pat))>0){
-    ids$code[i] <- ids$ring[i]
-    ids$ring[i] <- NA
-  }  
-}
+#Unecessary with Std BirdRef file
+# ind<-which(nchar(ids$ring)>7) #in Mad only those without any metal
+# ids[ind,]
+# 
+# for(i in 1:length(ids$year)){ #if code is under ring...put it in code
+# #  if(nchar(ids$ring[i])>9) #Ceuta and Maio
+#   if(nchar(ids$ring[i])>7) #Mad...however some codes have exactly 7 char as metal rings...W.X|M.X so it creates errors
+#   ids$code[i] <- ids$ring[i]
+# }
+# 
+# for(i in 1:length(ids$year)){
+#   pat <- "\\|"
+#   if(length(grep(ids$ring[i], pattern=pat))>0){
+#     ids$code[i] <- ids$ring[i]
+#     ids$ring[i] <- NA
+#   }  
+# }
 
 
 #------------------------
+ids[is.na(ids$code), "code"]
+
 for(i in 1:length(ids$year)){ #if code is empty, search ring in capt and fill it
   if(is.na(ids$code[i]))
     ids$code[i] <- cap.1$code[match(ids$ring[i], cap.1$ring)]    
