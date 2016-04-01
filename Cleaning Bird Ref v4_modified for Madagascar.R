@@ -758,6 +758,9 @@ juvs.omit<-adults.not.captured[adults.not.captured$year.ring %in% juvs.caps$year
 
 adults.not.captured<-adults.not.captured[!adults.not.captured$year.ring %in% juvs.omit,]
 
+#omit unringed birds X.X|X.X
+adults.not.captured<-adults.not.captured[!grepl(adults.not.captured$ring, pattern ="X\\.X"),]
+
 #--------------------------------------------------
 
 #-----omit individual with wrong ring FH47178 should be FH47187
@@ -828,6 +831,8 @@ birdref$error.ch <-NA
 #b) if a juvenile was misplaced as a parent in birdref, it will consider it as one of the parents...
 
 i<-which(nests %in% "2013-Andavadoaka-KiP-208")
+i<-1688
+i<-NA
 #-------------------------
 for (i in 1:nrow(birdref)){
   print(i)
@@ -843,16 +848,16 @@ for (i in 1:nrow(birdref)){
   if(length(p.ring)==1 | length(p.code)==1){
     birdref[i, "parent1"] <- p.ring[1]
     birdref[i, "code.p1"] <- p.code[1]
-    birdref[i, "captured_focalyear_p1"] <- capt.focal[1]
+    birdref[i, "captured_focalyear_p1"] <- capt.focal[1,2]
   }
     
-  if(length(p.ring)>1 | length(p.code)>1 | length(p.ring)<3 | length(p.code)<3){
+  if(length(p.ring)>1 & length(p.ring)<3 | length(p.code)>1  & length(p.code)<3){
     birdref[i, "parent1"] <- p.ring[1]
     birdref[i, "code.p1"] <- p.code[1]
-    birdref[i, "captured_focalyear_p1"] <- capt.focal[1]
+    birdref[i, "captured_focalyear_p1"] <- capt.focal[1,2]
     birdref[i, "parent2"] <- p.ring[2]
     birdref[i, "code.p2"] <- p.code[2]
-    birdref[i, "captured_focalyear_p2"] <- capt.focal[2]
+    birdref[i, "captured_focalyear_p2"] <- capt.focal[2,2]
   }
   # Error message if more than 2 adult ring numbers per nestID
   if(length(p.ring)>2 | length(p.code)>2){
@@ -871,7 +876,10 @@ for (i in 1:nrow(birdref)){
 #---------------debug------------------------
 tail(birdref, n=50)
 str(birdref[!is.na(birdref$error.ch),]) #12 with error in chicks
-str(birdref[!is.na(birdref$error.p),]) #37 with error in parents
+str(birdref[!is.na(birdref$error.p),]) #36 with error in parents
+
+birdref[birdref$year %in% "2013" & birdref$nest %in% "-124",]
+birdref[birdref$year %in% "2013" & birdref$nest %in% "134",]
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #------------------------------------------------------------------------------
@@ -887,7 +895,7 @@ str(birdref[!is.na(birdref$error.p),]) #37 with error in parents
 
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
 
-write.csv(birdref, "BirdRef_Mad_stdfile_CCI_29Mar2016.csv")
+write.csv(birdref, "BirdRef_Mad_stdfile_CCI_01Apr2016_v2.csv")
 
 
 #------------------------------------------------------------------------------------------
