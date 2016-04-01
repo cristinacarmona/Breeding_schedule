@@ -28,7 +28,7 @@
 #25/03/2016 3rd log up to line 571, found missing/wrong rings in birdref
 
 #29/03/2016 Re-made bird ref using captures and ids from adults which were not captured (taken from original Birdref file)
-
+#01/04/2016 5th log: Found error in "Captured in focal year" variable, when re-structuring the data the code is doing something wrong?
 #--------------------------------------------------
 #Madagascar
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
@@ -46,7 +46,7 @@ ls()
 working.list <- import.list
 #Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
 #Maio
-names(working.list) <- c("bf2","br","bf","cap","sex","ne","re")
+names(working.list) <- c("bf2","brstd","br","bf","cap1","cap","sex","ne","re")
 attach(working.list)
 #--------------------------------------------------------------------------------
 #I Preparation of data consistency and codes
@@ -745,6 +745,21 @@ adults.not.captured$age <- "A"
 names(adults.not.captured)
 colnames(adults.not.captured)<-c("year", "site", "nest", "ring", "code","species","mol_sex", "id.nest","captured_in_focalyear","age")
 
+#------------------check adults not captured
+head(adults.not.captured)
+
+#some juveniles were recorded as parents in birdref...this adds errors to this list
+adults.not.captured$year.ring <- paste(adults.not.captured$year, adults.not.captured$ring, sep="-")
+juvs.caps <- cap[cap$age %in% "J",]
+#----------------------------------------
+
+#omit juveniles that were wrongly placed as adults in birdref
+juvs.omit<-adults.not.captured[adults.not.captured$year.ring %in% juvs.caps$year.ring,"year.ring"]
+
+adults.not.captured<-adults.not.captured[!adults.not.captured$year.ring %in% juvs.omit,]
+
+#--------------------------------------------------
+
 #-----omit individual with wrong ring FH47178 should be FH47187
 ind<-which(adults.not.captured$ring %in% "FH47178")
 adults.not.captured[ind,] 
@@ -771,10 +786,33 @@ library(gtools)
 capt.create.bref<-smartbind(inds.captured, adults.not.captured)
 str(capt.create.bref) #4879 obs
 
+#rename
+capt<-capt.create.bref
+
 #-------------------------------------------------------------------------------
+
+#---debug------------------
+
+names(capt)
+cap$year.ring <- paste(cap$year, cap$ring, sep="-")
+names(bre.stacked)
+bre.stacked$year.ring <- paste(bre.stacked$year, bre.stacked$ring, sep="-")
+
+ind<-which(bre.stacked$year.ring %in% cap$year.ring & bre.stacked$captured_in_focalyear %in% "no" )
+str(bre.stacked[ind, c("nest.id","ring", "mol_sex")]) #625 which appear as not captured but were captured that year
+
+cap[cap$year.ring %in% "2015-FH73404",]
+cap[cap$id.nest %in% "2015-MP-224b",]
+bre.stacked[bre.stacked$ring %in% "FH73404",]
+cap[cap$id.nest %in% "2013-KiP--2",]
+
+#Examples checked were ok, if "captured_in_focalyear" said yes or no it did match the reality ,/
+#---------------------------------------
+
+
 #.------------------------------------------------------------------------------
 #Create New BirdRef file from captures and ids of uncaptured birds from original birdref file
-capt<-capt.create.bref
+#capt<-capt.create.bref
 capt$NestID <- paste(capt$year, capt$site, capt$species, capt$nest, sep='-') # Create unique nestIDs
 
 nests <- sort(unique(capt$NestID)) # list of unique nest IDs in capture file
@@ -783,8 +821,13 @@ names(birdref) <- c("year", "site", "nest","species", "parent1","code.p1", "pare
 birdref$error.p <- NA 
 birdref$error.ch <-NA
 
-library(gtools)
-
+#library(gtools)
+#--------for debug-------
+#01/04/2016 Errors found:
+#a) in captured_in_focalyear, if one adult was captured twice, then it appears as both adults from the nest were captured...
+#b) if a juvenile was misplaced as a parent in birdref, it will consider it as one of the parents...
+i<-
+#-------------------------
 for (i in 1:nrow(birdref)){
   print(i)
   n <-nests[i]
