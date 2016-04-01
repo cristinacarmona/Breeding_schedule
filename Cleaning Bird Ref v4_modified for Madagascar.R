@@ -826,7 +826,8 @@ birdref$error.ch <-NA
 #01/04/2016 Errors found:
 #a) in captured_in_focalyear, if one adult was captured twice, then it appears as both adults from the nest were captured...
 #b) if a juvenile was misplaced as a parent in birdref, it will consider it as one of the parents...
-i<-
+
+i<-which(nests %in% "2013-Andavadoaka-KiP-208")
 #-------------------------
 for (i in 1:nrow(birdref)){
   print(i)
@@ -837,7 +838,7 @@ for (i in 1:nrow(birdref)){
   # Add p1 and p2 ring numbers to birdref
   p.ring <- unique(cc$ring[cc$age %in% "A"])
   p.code <- unique(cc$code[cc$age %in% "A"])
-  capt.focal <- cc$captured_in_focalyear[cc$age %in% "A"]
+  capt.focal <- cc[cc$age %in% "A" & !duplicated(cc$ring),c("ring","captured_in_focalyear")]
 
   if(length(p.ring)==1 | length(p.code)==1){
     birdref[i, "parent1"] <- p.ring[1]
