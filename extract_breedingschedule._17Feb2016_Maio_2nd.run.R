@@ -43,6 +43,7 @@
 #30/03/2016 7th log - Start re-running code again using new BirdRef file produced. 
 #31/03/2016 8th log - Continue re-running code up to line 621
 #02/04/2016 9th log - up to 641
+#03/04/2016 10th log - Ran into error in nests file as laying dates are missing
 
 #---------------------------------------------------------------
 #Maio
@@ -440,8 +441,8 @@ p2.with.dupl <- br[!is.na(br$parent2) &
 p2 <- p2.with.dupl[!p2.with.dupl$parent2 %in% omit1,]
 p2$parent2 #647
 
-colnames(p1)[c(6,7,8,9)] <- c("ring","code","mate_ring", "mate_code") #SITE CHANGE
-colnames(p2)[c(8,9,6,7)] <- c("ring","code","mate_ring","mate_code") #SITE CHANGE #FOUND ERROR...18/03/2016 column numbers had to be changed
+colnames(p1)[c(6,7,8,9,13,14,15,16)] <- c("ring","code","mate_ring", "mate_code", "mol_sex_focal","mol_sex_mate", "captured_focalyear_focal","captured_focalyear_mate") #SITE CHANGE
+colnames(p2)[c(8,9,6,7,14,13,16,15)] <- c("ring","code","mate_ring","mate_code", "mol_sex_focal","mol_sex_mate", "captured_focalyear_focal","captured_focalyear_mate") #SITE CHANGE #FOUND ERROR...18/03/2016 column numbers had to be changed
 
 #--------------------------------------
 
@@ -654,16 +655,16 @@ ids[is.na(ids$code),]
 
 #exclude duplicates from captures for next for loop:
 cap.nodupl<-cap.1[!cap.1$ring %in% omit1,]
-
-for(i in 1:length(ids$year)){ #modification for MAD, search for rings of individuals with code but no ring
-  if(is.na(ids$ring[i]) & !is.na(ids$code[i]))
-    ids$ring[i] <- cap.nodupl$ring[match(ids$code[i], cap.nodupl$code)]
-}
+# 
+# for(i in 1:length(ids$year)){ #modification for MAD, search for rings of individuals with code but no ring
+#   if(is.na(ids$ring[i]) & !is.na(ids$code[i]))
+#     ids$ring[i] <- cap.nodupl$ring[match(ids$code[i], cap.nodupl$code)]
+# }
 
 #----develop/debug last for loop for Mad:
 cap.nodupl[cap.nodupl$code %in% "B.W|Y.M",]
 ids[ids$code %in% "B.W|Y.M",]
-
+ids[is.na(ids$ring) & !is.na(ids$code),]
 #---------------------------------------------
 
 # for(i in 1:length(ids$year)){#if adult has no metal ring, use code instead of ring#NOT IN MAD
@@ -678,9 +679,9 @@ head(ids)
 tail(ids)
 
 #MAIO:
-head(ids[ids$captured_focalyear_focal =="no" ,] )
-
-cap[cap$ring %in% "CA1148",] #this was captured but as Female??
+# head(ids[ids$captured_focalyear_focal =="no" ,] )
+# 
+# cap[cap$ring %in% "CA1148",] #this was captured but as Female??
 
 #MAD:
 cap.1[cap.1$code %in% "X.X|X.M",]
@@ -788,34 +789,43 @@ ids[nchar(ids$ring)<12 & nchar(ids$ring)>8,]
 ids.final<-ids
 str(ids.final) #1038 obs Ceuta; 1085 (09/02/2016, using BirdSoc);1031 (10/02/2016 up to 2012 only)
                 #1093 obs Maio
-                #1330 Mad
+                #1990 Mad
 table(ids.final$year) 
 table(ids.final$site)
 #ids.final$nest.id <- paste(ids.final$year, ids.final$site, ids.final$nest, sep="-")
 ids.final$nest.id <- paste(ids.final$year, ids.final$species, ids.final$nest, sep="-")
 unique(ids.final$nest.id) #CEUTA 602; 601 (10/02/2016, using BirdSoc up to 2012)
                           #MAIO 721
-                          #Mad 1038
+                          #Mad 1472
 
 
 #       a.3 Add year when metal was added and year when code was added (copied from create colour code field sheet.R)
 #extract the year a code first was assigned to each ring and metal ringing year
-cap.1$code.ring <- paste(cap.1$code, cap.1$ring, sep="-")
-cap.1<-cap.1[order(cap.1$code.ring, cap.1$year, cap.1$date),]
+# cap.1$code.ring <- paste(cap.1$code, cap.1$ring, sep="-")
+# cap.1<-cap.1[order(cap.1$code.ring, cap.1$year, cap.1$date),]
+names(cap)
+cap$code.ring<-paste(cap$code, cap$ring, sep="-")
 
-year.cr <- aggregate(cap.1$year, by=list(cap.1$code.ring), min)
+#year.cr <- aggregate(cap.1$year, by=list(cap.1$code.ring), min)
+year.cr<-aggregate(cap$year, by=list(cap$code.ring), min)
 
 #cap.1<-cap.1[order(cap.1$ring, cap.1$year, cap.1$date),]
 #year.mr <- aggregate(cap.1$year, by=list(cap.1$ring), min)
 year.mr <- aggregate(cap$year, by =list(cap$ring),min) #uses cap instead of cap.1 because cap.1 does not include juveniles, we want to know the actual year when metal ring was added
 
 head(year.mr)
-cap.1$year.cr <- NA
+# cap.1$year.cr <- NA
+cap$year.cr <- NA
 cap$year.mr <- NA
 
-for(i in 1:length(cap.1$year)){
-  cap.1$year.cr[i] <- year.cr$x[match(cap.1$code.ring[i], year.cr$Group.1)]
+# for(i in 1:length(cap.1$year)){
+#   cap.1$year.cr[i] <- year.cr$x[match(cap.1$code.ring[i], year.cr$Group.1)]
+# }
+for(i in 1:length(cap$year)){
+  cap$year.cr[i] <- year.cr$x[match(cap$code.ring[i], year.cr$Group.1)]
 }
+
+
 
 for(i in 1:length(cap$year)){
   cap$year.mr[i] <- year.mr$x[match(cap$ring[i], year.mr$Group.1)]
@@ -834,7 +844,7 @@ ids.final$code.ring <- paste(ids.final$code, ids.final$ring, sep="-")
 #     ids.final$year.mr[i] <- cap$year.mr[match(ids.final$ring[i], cap$ring)]
 # }
 for(i in 1:length(ids.final$year)){ 
-    ids.final$year.cr[i] <- cap.1$year.cr[match(ids.final$code.ring[i], cap.1$code.ring)]
+    ids.final$year.cr[i] <- cap$year.cr[match(ids.final$code.ring[i], cap$code.ring)]
     ids.final$year.mr[i] <- cap$year.mr[match(ids.final$ring[i], cap$ring)]
 }
 
@@ -851,19 +861,19 @@ ids.final[is.na(ids.final$year.cr),] #CEUTA: none, Maio: none, MAD: individuals 
 ids.final[is.na(ids.final$year.cr),c("ring")]
 ids.final[ids.final$code == ids.final$ring,]
 
-ids.final[is.na(ids.final$year.mr),] #Ceuta: 1 (BX.WX|BX.OX); MAIO: none
+ids.final[is.na(ids.final$year.mr),] #Ceuta: 1 (BX.WX|BX.OX); MAIO: none; MAD ones with no metal and those with wrong codes?
 
+ids.final[is.na(ids.final$year.mr) & is.na(ids.final$year.cr),]
 
-#CEUTA ids.final$year.mr[ids.final$ring == ids.final$code]<-NA
+#-----------get rid of ub-------------------------
+ids.final[ids.final$code %in% c("ub","Luke?"),"code"] <- NA
+ids.final[ids.final$mate_code %in% c("ub","Luke?"),]
+ids.final[ids.final$mate_ring %in% "Luke?", c("mate_code","mate_ring")]<-NA
 
-head(cap[!cap$age %in% "J",c("year.mr","sex","ring")])
-cap[cap$ring %in% "CA3801",]
-cap.1[cap.1$ring %in% "CA3801",]
-cap[cap$ring %in% "CA3801",]
-
+#---------------------------
 #-------------develop a.3
-cap.1<-cap.1[order(cap.1$code.ring, cap.1$year, cap.1$date),]
-tail(cap.1, n=300)
+# cap.1<-cap.1[order(cap.1$code.ring, cap.1$year, cap.1$date),]
+# tail(cap.1, n=300)
 
 #-----------------------------------------------------------------------------
 
@@ -931,19 +941,26 @@ tail(cap.1, n=300)
 
 #prepare resightings file:
 re$date
-min(cap$date)
-max(cap$date)
+min(cap$date); min(re$date)
+max(cap$date); max(re$date)
 re[is.na(re$date),]
 #re[re$date<900,c("observer","year","date")] #Check Maio: there are resightings
-re[re$date<400,c("observer","year","date")] # Check Mad
+re[re$date<300,c("observer","year","date")] # Check Mad
 re[re$date>600,c("observer","year","date")]
+
+#-------------minimum laying date and maximum laying dates:
+#Madagascar
+min(ne$found_date, na.rm=T)
+max(ne$found_date, na.rm=T)
+
+#--------------------------------------------------------------------
 
 # #MAIO: in non-breeding seasons of 2009 and 2008, restrict dataset:
 # re2<-re[re$date>=800,]
 # re<-re2
 
 #MAD: restrict resightings for length of fieldwork season: 300-605
-re2<-re[re$date>=300 & re$date<=605,]
+re2<-re[re$date>=300 & re$date<=700,]
 min(re2$date)
 max(re2$date)  
 
@@ -998,7 +1015,11 @@ cap$real.date <- as.Date(ISOdate(cap$year,cap$date%/%100,cap$date%%100), "%Y/%m/
 head(cap)
 
 names(re)
+table(cap$date)
+hist(cap$date)
 
+cap.dates<-cap[cap$date >=300 & cap$date <=700,]
+cap<-cap.dates
 #silenced to see if error comes from this line#cap$real.date <- as.character(cap$real.date)
 #---------------------------
 
@@ -1042,14 +1063,14 @@ for(i in 1:length(ids.final$year)){
 
 #---------------------
 #turn first.cap and last.cap to real dates_
-ids.final$first.cap.r <- as.Date(ids.final$first.cap)
-ids.final$last.cap.r <- as.Date(ids.final$last.cap)
+ids.final$first.cap.r <- as.Date(ids.final$first.cap, format="%Y-%m-%d")
+ids.final$last.cap.r <- as.Date(ids.final$last.cap, format="%Y-%m-%d")
 
 #-----debug------
 str(ids.final[ids.final$first.cap!=ids.final$last.cap,])
   #74 adults were captured more than once in a year MAIO
   #397 adults were captured more than once CEUTA
-  #106 adults in MAd
+  #135 adults in MAd
 
 head(ids.final[ids.final$first.cap!=ids.final$last.cap,])
 #---------------------
