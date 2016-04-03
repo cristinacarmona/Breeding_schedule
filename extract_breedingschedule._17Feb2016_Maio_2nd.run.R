@@ -41,7 +41,8 @@
                     #Issue 4 OMIT JUVENILES from list of duplicates???? 
 
 #30/03/2016 7th log - Start re-running code again using new BirdRef file produced. 
-#31/03/2016 8th log - Continue re-running code
+#31/03/2016 8th log - Continue re-running code up to line 621
+#02/04/2016 9th log - up to 641
 
 #---------------------------------------------------------------
 #Maio
@@ -613,26 +614,39 @@ unique(code.change$ring)#13 rings, also with ALL captures:
 
 #----------------------------------------------------------------
 #debug for loop:
-which(ids$ring %in% "FH17803")
-i<-539
+ind<-which(ids$ring %in% "FH69181")
+ids[ind,]
+i<-427
 ids[i,]
 #---------------
+ids.3<-ids
+ids<-ids.3
+
 for(i in 1:length(ids$year)){ #if code is empty, search ring in capt and fill it
-  if(is.na(ids$code[i])| ids$comments_stdfile[i] %in% "inconsistent codes"){
-    if(!ids$ring[i] %in% code.change$ring){
-      ids$code[i] <- cap.1$code[match(ids$ring[i], cap.1$ring)] #cap.1 omits juveniles
+  if(is.na(ids$code[i]) | ids$comments_stdfile[i] %in% "inconsistent codes"){
+    if(ids$ring[i] %in% code.change$ring){
+      ids$code[i] <- "inconsistent codes"
+      ids$comments_stdfile[i] <- "inconsistent codes"#cap.1 omits juveniles
     }else{
-      if(ids$ring[i] %in% code.change$ring){
+      if(!ids$ring[i] %in% code.change$ring){
         ind<-which(cap$ring %in% ids$ring[i])
         cc<-cap[ind,]
-        ids$code[i] <- cap$code[] 
+        ids$code[i] <- cc$code[1] 
       }
     }
-  
   }
-   
 }
 
+#rings that appear in code.change should not have any code
+ids[ids$ring %in% code.change$ring, "code"] <- "inconsistent codes"
+ids[ids$ring %in% code.change$ring, "comments_stdfile"] <- "inconsistent codes"
+
+
+#--------------------debug
+tail(ids)
+ids[ids$ring %in% code.change$ring,]
+ids[is.na(ids$code),]
+#----------------------
 # for(i in 1:length(ids$year)){ #if ring has a code, search ring using code and replace#NOT IN MAD
 #   if(nchar(ids$ring[i])>9)
 #     ids$ring[i] <- cap.1$ring[match(ids$code[i], cap.1$code)]
