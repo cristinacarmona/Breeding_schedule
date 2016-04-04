@@ -3,7 +3,7 @@
 #CODE FROM /G:\Plovers\KP data management\Cleaning data code/care.R  Andras K. sent
 #-------------------------------------------------------------------------------
 #Mad start cleaning nests ONLY
-#03/04/2016 - 1st log start cleaning
+#03/04/2016 - 1st log start cleaning, up to line 128 fixing floating categories
 
 
 ##########attach datasets########################################
@@ -23,7 +23,7 @@ ls()
 working.list <- import.list
 #Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
 #Maio
-names(working.list) <- c("bf1","br","br3","bf","cap3","cap","sex","ne","re")
+names(working.list) <- c("bf1","br","br3","bf","cap3","cap","hatch","sex","ne","re")
 
 
 attach(working.list)
@@ -52,6 +52,7 @@ str(nes)#608
 str(sex)#582
 str(surv) #2849
 
+str(hatch)#795
 
 table(nes$year)
 nes$year <- as.numeric(nes$year)
@@ -125,52 +126,65 @@ str(nes[nes$fate%in%"HATCH" & !is.na(nes$end_date),])#219 cases with known end_d
   
   
   unique(nes$float1) #check which categories we have:
-  table(nes$float1)                  #categories  Mad float1:
+  table(nes$float1, useNA="always")                  #categories  Mad float1:
           # [1] "B"       NA        "BC"      "G"       "E"       "A"       "AB"      "CD"      "F"       "H"       "C"       "D"       "DE"     
           # [14] "EF"      "GH"      "FG"      "STARRED" "N/A"     "B/C"     "E/F"     "C/D"    
-          nes[nes$float1 %in% "GH",]
+          nes[nes$float1 %in% "G",]
           nes[nes$float1 %in% "FG",]
-          nes[nes$float1 %in% "STARRED",]
-          nes[nes$float1 %in% "H",]
+          nes[nes$float1 %in% "STARRED",]#egg cracked and hatching
+          nes[nes$float1 %in% "H",] #almost hatching
+          
   unique(nes$float2)
+  table(nes$float2, useNA="always")
   #                   #categories Mad float2:
   # [1] "B"       NA        "BC"      "EF"      "D"       "G"       "A"       "C"       "F"       "AB"      "CD"      "E"       "DE"     
   # [14] "FG"      "H"       "GH"      "STARRED" " B"      "N/A"     "B/C"     "E/F"     "D/E"     "C/D"    
   unique(nes$float3)
+  table(nes$float3, useNA="always")
                     #categories Mad float3:
   # [1] NA        "A"       "C"       "G"       "3"       "1"       "D"       "F"       "30"      "BC"      "CD"      "E"       "B"      
   # [14] "AB"      "STARRED"  
 
     #change categories with wrong format
-    nes$float1[nes$float1%in%c("JUST F", "just F")] <- "F"
-    nes$float1[nes$float1%in%c(" D-E")]<-"E"   #whenever a category was combined I used the maximum (except AB which does exist)
-    nes$float1[nes$float1%in%c("EF")]<-"F"
-    nes$float1[nes$float1%in%c(NA)] <- "0" #NA needs to be changed to 0, the latest letter on the alphabet needs to be chosen from the three eggs to use floating info of the oldest egg
-    nes$float[nes$float1%in%c("BC")]<-"C"
-    nes$float[nes$float1%in%c("CD")]<-"D"
+    nes$float1[nes$float1%in%c("B/C", "BC")] <- "C"
+    nes$float1[nes$float1%in%c("C/D","CD")]<-"D"   #whenever a category was combined I used the maximum (except AB which does exist)
+    nes$float1[nes$float1%in%c("EF", "E/F")]<-"F"
+    nes$float1[nes$float1%in%c("DE")] <- "E" #NA needs to be changed to 0, the latest letter on the alphabet needs to be chosen from the three eggs to use floating info of the oldest egg
+    nes$float1[nes$float1%in%c("N/A", NA)]<-0
+    nes$float1[nes$float1%in%c("FG")]<-"G"
+    nes$float1[nes$float1%in%c("GH")]<-"H"
+    nes$float1[nes$float1 %in% "STARRED"]<-"H"
+    # nes$float[nes$float1%in%c(NA)]<-0
+    # nes$float[nes$float1%in%c("CD")]<-"D"
 
-    nes$float2[nes$float2%in%c("BC")]<-"C"
-    nes$float2[nes$float2%in%c("AB ")]<-"AB"
-    nes$float2[nes$float2%in%c("JUST F", "just F")] <- "F"
-    nes$float2[nes$float2%in%c("CD")]<-"D"
-    nes$float2[nes$float2%in%c("D-E")]<-"E"
-    nes$float2[nes$float2%in%c("EF")]<-"F"
-    nes$float2[nes$float2%in%c(NA)] <-"0"
+    nes$float2[nes$float2%in%c(" B")]<-"B"
+    nes$float2[nes$float2%in%c("B/C", "BC")] <- "C"
+    nes$float2[nes$float2%in%c("C/D","CD")]<-"D"
+    nes$float2[nes$float2%in%c("DE", "D/E")] <- "E"
+    nes$float2[nes$float2%in%c("EF", "E/F")]<-"F"
+    nes$float2[nes$float2%in%c("FG")]<-"G"
+    nes$float2[nes$float2%in%c(NA, "N/A")] <-"0"
+    nes$float2[nes$float2%in%c("GH")]<-"H"
+    nes$float2[nes$float2 %in% "STARRED"]<-"H"
 
     nes$float3[nes$float3%in%c(NA)] <- "0"
     nes$float3[nes$float3%in%c("JUST F", "just F")] <- "F"
     nes$float3[nes$float3%in%c("CD")]<-"D"
-    nes$float3[nes$float3%in%c("D-E")]<-"E"
-
+    nes$float3[nes$float3%in%c("BC")]<-"C"
+    nes$float3[nes$float3 %in% "STARRED"]<-"H"
+    nes$float3[nes$float3 %in% "30"]<-"B"
+    nes$float3[nes$float3 %in% "3"]<-0 #ignore....rest of eggs were about to hatch
+    nes$float3[nes$float3 %in% "1"]<-"E"
+   
 
     unique(nes$float1) #check if categories are now fine
     unique(nes$float2)
     unique(nes$float3)
 
     #give the maximum floating stage of all 3 eggs
-    nes$float_max<-data.frame(apply(nes[,c("float1","float2","float3")],1,max))
+    nes$float_max<-data.frame(apply(nes[,c("float1","float2","float3")],1, function(x) max(x,na.rm=T)))
     
-
+    nes[c("float1","float2","float3","float_max")]
     #####################FUNCTION FOR CALC LAYING DATE FROM FLOATING#####################
     #Calculate number of days since laying according to floating stage
     #Use maximum floating stage of all 3 eggs
@@ -182,10 +196,10 @@ str(nes[nes$fate%in%"HATCH" & !is.na(nes$end_date),])#219 cases with known end_d
                                             ifelse(float =="D", 8,
                                             ifelse(float=="E", 10,
                                             ifelse(float=="F", 11,
-                                            ifelse(float=="F+1", 20,
+                                            ifelse(float=="G", 20,
                                             ifelse(float=="F+2", 21,
                                             ifelse(float=="F+3", 22,
-                                            ifelse(float=="pipping", 24
+                                            ifelse(float=="H", 24
                                             ,"NA"))))))))))})}
     #############################END OF FUNCTION#############################
     #Apply calc_days_stage function
@@ -207,28 +221,30 @@ str(nes[nes$fate%in%"HATCH" & !is.na(nes$end_date),])#219 cases with known end_d
     #convert Found date to normal date
     nes$found_as_date<-dateconversion(nes$found_date, nes$year)
     nes$found_as_date<-as.Date(nes$found_as_date, "%d-%m-%Y")
-    nes$floating_date_asdate<-dateconversion(nes$floating_date, nes$year)
-    nes$floating_date_asdate<-as.Date(nes$floating_date_asdate, "%d-%m-%Y")
+    #nes$floating_date_asdate<-dateconversion(nes$floating_date, nes$year)
+    #nes$floating_date_asdate<-as.Date(nes$floating_date_asdate, "%d-%m-%Y")
 
     #subtract number of days incubated to the founddate
     str(days_incubated)
     str(nes$floating_date_asdate)
-    nes$estimated_layingdate <- ifelse(!is.na(nes$floating_date), nes$floating_date_asdate-nes$days_incubated, nes$found_as_date-nes$days_incubated)
+    #nes$estimated_layingdate <- ifelse(!is.na(nes$floating_date), nes$floating_date_asdate-nes$days_incubated, nes$found_as_date-nes$days_incubated)
+    nes$estimated_layingdate <- ifelse(!is.na(nes$days_incubated), nes$found_as_date-nes$days_incubated, NA)
     
     nes$estimated_layingdate<-as.Date(nes$estimated_layingdate, origin="1970-01-01")
 
     names(nes)
           #check if estimations of nests with floating date different from found date are correct
-          nes[nes$year==2013 & !is.na(nes$floating_date_asdate), c("floating_date_asdate","found_as_date","days_incubated","estimated_layingdate")]
+         # nes[nes$year==2013 & !is.na(nes$floating_date_asdate), c("floating_date_asdate","found_as_date","days_incubated","estimated_layingdate")]
 
-
-
+#-----------debug-------
+head(nes)          
+#----------------------------
     nes[c(1:5),]
     nes[nes$year==2013,c("found_date","found_as_date","days_incubated", "laying_date","estimated_layingdate")] #check if calculations were done correctly
 
     #how many new estimations were calculated:
-    str(nes[!is.na(nes$estimated_layingdate)& is.na(nes$laying_date),]) #180 observations with no laying date but where laying date was able to be estimated
-    str(nes[is.na(nes$estimated_layingdate) & is.na(nes$laying_date),]) #still 74 obs without laying date
+    str(nes[!is.na(nes$estimated_layingdate)& is.na(nes$laying_date),]) #2037 observations with no laying date but where laying date was able to be estimated
+    str(nes[is.na(nes$estimated_layingdate) & is.na(nes$laying_date),]) #still 175 obs without laying date
 
 
     #check if estimated_laying date is the same as laying_date of nests where it had been estimated before
@@ -237,9 +253,9 @@ str(nes[nes$fate%in%"HATCH" & !is.na(nes$end_date),])#219 cases with known end_d
     nes$laying_as_date<-as.Date(nes$laying_as_date, "%d-%m-%Y")
     nes[,c("laying_as_date","laying_date")]
     str(nes[!is.na(nes$laying_as_date)& !is.na(nes$estimated_layingdate)&
-        nes$laying_as_date==nes$estimated_layingdate, c("laying_as_date","estimated_layingdate")])    #in 119 obs estimations are equal
+        nes$laying_as_date==nes$estimated_layingdate, c("laying_as_date","estimated_layingdate")])    #in 207 obs estimations are equal
     str(nes[!is.na(nes$laying_as_date)& !is.na(nes$estimated_layingdate)&
-        nes$laying_as_date!=nes$estimated_layingdate, c("laying_as_date","estimated_layingdate")])    #in 160 obs estimations are different
+        nes$laying_as_date!=nes$estimated_layingdate, c("laying_as_date","estimated_layingdate")])    #in 365 obs estimations are different
 
             #to check consistency of new estimated laying dates:
             #estimate difference in days between estimated_layingdate and laying_as_date in obs where it was different
@@ -248,6 +264,7 @@ str(nes[nes$fate%in%"HATCH" & !is.na(nes$end_date),])#219 cases with known end_d
              nes[!is.na(nes$difference)& nes$difference>2 | !is.na(nes$difference) & nes$difference<=(-2),c("laying_as_date","estimated_layingdate","difference","float1","float2","float3")] #obs larger than 2 and smaller than -2
 
              fivenum(nes$difference)
+             table(nes$difference)
              differences.nona<-nes[!is.na(nes$difference),c("difference")]
              differences.nona<-as.numeric(differences.nona)
              stem(differences.nona)
