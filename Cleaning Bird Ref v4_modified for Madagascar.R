@@ -29,6 +29,8 @@
 
 #29/03/2016 Re-made bird ref using captures and ids from adults which were not captured (taken from original Birdref file)
 #01/04/2016 5th log: Found error in "Captured in focal year" variable, when re-structuring the data the code is doing something wrong?
+
+#05/04/2016 6th log: mol_sex was blank....load std file and modify this part only ISSUE 5
 #--------------------------------------------------
 #Madagascar
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
