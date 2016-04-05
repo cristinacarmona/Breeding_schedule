@@ -31,6 +31,7 @@
 #01/04/2016 5th log: Found error in "Captured in focal year" variable, when re-structuring the data the code is doing something wrong?
 
 #05/04/2016 6th log: mol_sex was blank....load std file and modify this part only ISSUE 5
+#skip all code and create subsection at the bottom
 #--------------------------------------------------
 #Madagascar
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
@@ -48,7 +49,7 @@ ls()
 working.list <- import.list
 #Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
 #Maio
-names(working.list) <- c("bf2","brstd","br","bf","cap1","cap","sex","ne","re")
+names(working.list) <- c("bf2","br","brold","bf","cap1","cap","hatch","sex","ne3","ne","re")
 attach(working.list)
 #--------------------------------------------------------------------------------
 #I Preparation of data consistency and codes
@@ -1045,3 +1046,53 @@ write.csv(birdref, "BirdRef_Mad_stdfile_CCI_01Apr2016_v2.csv")
 #------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------
+
+#######################################
+#ADD MOL SEXES AND FIELD SEXES (sex of individuals with unknown mol_sex but whose partners mol_sex was known)
+
+names(br)
+
+#-----------Add mol_sex to Madagascar...omitted from std file-----------------------------
+br2<-br
+br<-br2
+
+head(sex)
+
+
+for (i in 1:length(br$year)){
+  print(i)
+  if(!is.na(br$parent1[i])){
+    br$mol_sex_p1[i] <- sex$sex[match(br$parent1[i], sex$ring)]
+    }
+  if(!is.na(br$parent2[i])){
+    br$mol_sex_p2[i] <- sex$sex[match(br$parent2[i], sex$ring)]
+  }
+}
+
+br$field_sex_p1<-NA
+br$field_sex_p2<-NA
+
+#Add complementary sexes to field_sex
+br[br$mol_sex_p1 %in% "M" & !is.na(br$parent2) & is.na(br$mol_sex_p2), "field_sex_p2"]<-"F"
+
+br[br$mol_sex_p1 %in% "F" & !is.na(br$parent2) & is.na(br$mol_sex_p2),"field_sex_p2"] <- "M"
+
+br[br$mol_sex_p2 %in% "M" & !is.na(br$parent1) & is.na(br$mol_sex_p1), "field_sex_p1"]<-"F"
+
+br[br$mol_sex_p2 %in% "F" & !is.na(br$parent1) & is.na(br$mol_sex_p1),"field_sex_p1"] <- "M"
+
+#check which are still missing
+str(br[!is.na(br$parent1) & is.na(br$mol_sex_p1) & is.na(br$field_sex_p1),c(2:6,8,15,16)])#480 with known id but unknown sex in both p1 and p2
+
+str(br[!is.na(br$mol_sex_p1),]) #1251 known mol_sexe_p1
+str(br[!is.na(br$mol_sex_p2),]) #447
+str(br[!is.na(br$field_sex_p1),]) #40
+str(br[!is.na(br$field_sex_p2),]) #72
+
+#------------------------------------------------------------------------------------------
+#-------------------------------------Write BirdRef_std NEW------------------------------------
+#------------------------------------------------------------------------------------------
+
+setwd("F:/Plovers/3rd Chapter/input/Madagascar")
+
+write.csv(br, "BirdRef_Mad_stdfile_CCI_05Apr2016_v2.csv")
