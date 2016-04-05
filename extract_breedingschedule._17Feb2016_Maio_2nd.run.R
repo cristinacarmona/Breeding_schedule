@@ -44,6 +44,8 @@
 #31/03/2016 8th log - Continue re-running code up to line 621
 #02/04/2016 9th log - up to 641
 #03/04/2016 10th log - Ran into error in nests file as laying dates are missing
+#04/04/2016 11th log - Produced nest std file, will restart code tomorrow
+#05/04/2016 12th log - Re-start running code
 
 #---------------------------------------------------------------
 #Maio
@@ -70,7 +72,7 @@ ls()
 working.list <- import.list
 #Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
 #Maio
-names(working.list) <- c("bf1","br","br3","bf","cap3","cap","sex","ne","re")
+names(working.list) <- c("bf1","br","br3","bf","cap3","cap","hatch","sex","ne3","ne","re")
 
 
 attach(working.list)
@@ -1087,27 +1089,28 @@ head(ids.final)
 
 #re-label species in Nests to create nest.id
 table(ne$species)
-ne[ne$species %in% "KIP","species"] <- "KiP"
-ne[ne$species %in% "WFP","species"] <- "WfP"
+#ne[ne$species %in% "KIP","species"] <- "KiP"
+#ne[ne$species %in% "WFP","species"] <- "WfP"
 
-ne$nest.id <- paste(ne$year, ne$species, ne$nest, sep="-")#Mad
+#ne$nest.id <- paste(ne$year, ne$species, ne$nest, sep="-")#Mad
 
 #Check fate categories for nests
 table(ne$fate)
-ne[ne$fate %in% "Hatch","fate"] <- "HATCH"
+#ne[ne$fate %in% "Hatch","fate"] <- "HATCH"
 
 #-------match ld, fd, end_date, etc
 for(i in 1:length(ids.final$year)){ 
-  ids.final$laying_date[i] <- as.numeric(ne$laying_date[match(ids.final$nest.id[i], ne$nest.id)])
-  ids.final$found_date[i] <- as.numeric(ne$found_date[match(ids.final$nest.id[i], ne$nest.id)])
-  ids.final$end_date[i] <- as.numeric(ne$end_date[match(ids.final$nest.id[i], ne$nest.id)])
-  ids.final$fate[i] <- as.numeric(ne$fate[match(ids.final$nest.id[i], ne$nest.id)])
-  ids.final$northing[i] <- as.numeric(ne$northing[match(ids.final$nest.id[i], ne$nest.id)])
-  ids.final$easting[i] <- as.numeric(ne$easting[match(ids.final$nest.id[i], ne$nest.id)])
+  ids.final$laying_date[i] <- as.numeric(ne$laying_date[match(ids.final$nest.id[i], ne$id.nest)])
+  ids.final$found_date[i] <- as.numeric(ne$found_date[match(ids.final$nest.id[i], ne$id.nest)])
+  ids.final$end_date[i] <- as.numeric(ne$end_date[match(ids.final$nest.id[i], ne$id.nest)])
+  ids.final$fate[i] <- as.numeric(ne$fate[match(ids.final$nest.id[i], ne$id.nest)])
+  ids.final$northing[i] <- as.numeric(ne$northing[match(ids.final$nest.id[i], ne$id.nest)])
+  ids.final$easting[i] <- as.numeric(ne$easting[match(ids.final$nest.id[i], ne$id.nest)])
   #ids.final$latitude[i] <- ne$Latitude[match(ids.final$nest.id[i], ne$nest.id)]
   #ids.final$longitude[i] <- ne$Longitude[match(ids.final$nest.id[i], ne$nest.id)]
-  ids.final$no_chicks[i] <- as.numeric(ne$no_chicks[match(ids.final$nest.id[i], ne$nest.id)])
-  ids.final$clutch_size[i] <- as.numeric(ne$clutch_size[match(ids.final$nest.id[i], ne$nest.id)])  
+  ids.final$no_chicks[i] <- as.numeric(ne$no_chicks[match(ids.final$nest.id[i], ne$id.nest)])
+  ids.final$clutch_size[i] <- as.numeric(ne$clutch_size[match(ids.final$nest.id[i], ne$id.nest)])
+  ids.final$hatch_date[i]<-as.numeric(ne$hatch_date[match(ids.final$nest.id[i], ne$id.nest)])
 }
 
 #-----debug------
@@ -1123,7 +1126,7 @@ ids.final$end_date <- as.numeric(ids.final$end_date)
 ids.final$laying_date.r <- as.Date(ISOdate(ids.final$year,ids.final$laying_date%/%100,ids.final$laying_date%%100), "%Y/%m/%d", tz="GMT")
 ids.final$found_date.r <- as.Date(ISOdate(ids.final$year,ids.final$found_date%/%100,ids.final$found_date%%100), "%Y/%m/%d", tz="GMT")
 ids.final$end_date.r <- as.Date(ISOdate(ids.final$year,ids.final$end_date%/%100,ids.final$end_date%%100), "%Y/%m/%d", tz="GMT")
-#Ceuta:ids.final$hatching_date.r <- as.Date(ISOdate(ids.final$year,ids.final$hatch%/%100,ids.final$hatch%%100), "%Y/%m/%d", tz="GMT")#CEUTA
+ids.final$hatching_date.r <- as.Date(ISOdate(ids.final$year,ids.final$hatch_date%/%100,ids.final$hatch_date%%100), "%Y/%m/%d", tz="GMT")#CEUTA
 ids.final$laying_date.r <- as.character(ids.final$laying_date.r)
 ids.final$found_date.r <- as.character(ids.final$found_date.r)
 ids.final$end_date.r <- as.character(ids.final$end_date.r)
@@ -1132,11 +1135,14 @@ ids.final$end_date.r <- as.character(ids.final$end_date.r)
 head(ids.final)
 head(ids.final[!is.na(ids.final$clutch_size),])
 str(ids.final)#1756, 1999 after update
+
+ids.final[is.na(ids.final$laying_date),]
 #-----------------------------------------------------MAD ran up to here 21/March/2016 issue3 was detected so stopped
 
 #         iv. Broodfates (earliest and latest dates when male or female was seen)
 names(bf)
 #bf$nest.id <- paste(bf$year, bf$site, bf$brood, sep="-") #MAIO CEUTA
+table(bf$species)
 bf$nest.id <- paste(bf$year, bf$species, bf$brood, sep="-") #MAD
 #------------------------------
 #NEW SECTION ADDED after Maio's 2nd run
@@ -1185,24 +1191,25 @@ bf$real.date <- as.Date(ISOdate(bf$year,bf$date%/%100,bf$date%%100), "%Y/%m/%d",
               #table(bf$parents)
 
 #Madagascar
-table(bf$parent1)
-table(bf$parent2)
+# table(bf$parent1)
+# table(bf$parent2)
+table(bf$parent)
 
 #--------debug----------
 # ids.final$mol_sex <- as.character(ids.final$mol_sex)
 # ids.final$field_sex <- as.character(ids.final$field_sex)
 # 
-sex.check<-ids.final[ids.final$mol_sex_focal %in% "F" & ids.final$field_sex_focal %in% "M",]
-sex.check2<-ids.final[ids.final$mol_sex_focal %in% "M" & ids.final$field_sex_focal %in% "F",]
-# 
+# sex.check<-ids.final[ids.final$mol_sex_focal %in% "F" & ids.final$field_sex_focal %in% "M",]
+# sex.check2<-ids.final[ids.final$mol_sex_focal %in% "M" & ids.final$field_sex_focal %in% "F",]
+# # 
 # cap[cap$ring %in% sex.check$ring,]
 # cap[cap$ring %in% sex.check2$ring,]
 # 
-sex[sex$ring %in% sex.check$ring,] #CA3037 inconsistent mol sex from sex file and mol_sex column!
-# sex[sex$ring %in% sex.check2$ring,]
-# unique(sex.check$ring)
-# 
-br[br$male %in% sex.check$ring,]
+# sex[sex$ring %in% sex.check$ring,] #CA3037 inconsistent mol sex from sex file and mol_sex column!
+# # sex[sex$ring %in% sex.check2$ring,]
+# # unique(sex.check$ring)
+# # 
+# br[br$male %in% sex.check$ring,]
 # br[br$male %in% sex.check2$ring,]
 # 
 # ids.final[ids.final$nest.id %in% "2006-D-1", c("northing","easting")]
@@ -1210,7 +1217,23 @@ br[br$male %in% sex.check$ring,]
 # #10/08/2015 found inconsistent mol_sex in CA3037...bug in BirdRef Cleaning code
 # #corrected BirdRef std file ,/
 #----------------------------------------
+#-----------Add mol_sex to Madagascar...omitted from std file-----------------------------
+head(ids.final)
+head(sex)
+ids.final[is.na(ids.final$ring),]
 
+for (i in 1:length(ids.final$year)){
+  if(!is.na(ids.final$ring)){
+    ids.final$mol_sex_focal[i] <- sex$sex[match(ids.final$ring[i], sex$ring)]
+    if(!is.na(ids.final$mate_ring)){
+      ids.final$mol_sex_mate[i] <- sex$sex[match(ids.final$mate_ring[i], sex$ring)]
+    }
+  }
+}
+
+
+#----------------------------------------
+#----------------------------------------
 # identify if male, female or both parents were seen and min max dates
 #22/01/2016 this part was modified as it was based on mol_sex,
 #           but it should be based on field_sex as observers considered the colour rings 
@@ -1224,9 +1247,18 @@ ids.final$times.adult.not.seen <- NA
 ids.final$total.brood.res <- NA
 ids.final$last.bf.adult.before.desertion <- NA
 ids.final$datenot.seen.after.desertion <- NA
+ids.final$bf.quality <- NA
+
+unique(bf$comments)
 # ids.final$consec.not.seen.all <- NA
 # ids.final$consec.not.seen.any <- NA
 # ids.final$consec.times.not.seen <- NA
+
+#----debug for loop----
+which(ids.final$nest.id %in% "2014-WfP-108")
+i<-813
+ids.final[i,]
+#-------------------------
 
 for(i in 1:length(ids.final$year)){  #for loop brood fates adults
   #ind <- grep(ids.final$nest.id[i], bf$nest.id, fixed=TRUE) #corrected bug
@@ -1237,8 +1269,8 @@ for(i in 1:length(ids.final$year)){  #for loop brood fates adults
   group.bf<-group.bf[order(group.bf$date, group.bf$time) & !is.na(group.bf$parents),]
 
   ids.final$total.brood.res[i] <- length(group.bf$date)
-  
-  if(length(group.bf$date)>0 & ids.final$field_sex_focal[i] == "M"){
+if(!is.na(ids.final$mol_sex_focal[i]))  
+  if(length(group.bf$date)>0 & ids.final$mol_sex_focal[i] == "M"){
     group.bf$counter <- c(1:length(group.bf$date))
     group.bf$date.time<-paste(group.bf$date, group.bf$time, sep="-")  
     group.bf1<-group.bf[group.bf$parents == 3 | group.bf$parents == 4,]
@@ -1277,7 +1309,7 @@ for(i in 1:length(ids.final$year)){  #for loop brood fates adults
       }
   }
   
-    if(length(group.bf$date)>0 & ids.final$field_sex_focal[i] == "F"){
+    if(length(group.bf$date)>0 & ids.final$mol_sex_focal[i] == "F"){
       group.bf$date.time<-paste(group.bf$date, group.bf$time, sep="-")  
       group.bf$counter <- c(1:length(group.bf$date))
       group.bf2<-group.bf[group.bf$parents == 2 | group.bf$parents == 4,]
