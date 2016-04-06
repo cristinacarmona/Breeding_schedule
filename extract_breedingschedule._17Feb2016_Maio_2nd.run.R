@@ -322,8 +322,8 @@ p2.with.dupl <- br[!is.na(br$parent2) &
 p2 <- p2.with.dupl[!p2.with.dupl$parent2 %in% omit1,]
 p2$parent2 #647
 
-colnames(p1)[c(6,7,8,9,13,14,15,16)] <- c("ring","code","mate_ring", "mate_code", "mol_sex_focal","mol_sex_mate", "captured_focalyear_focal","captured_focalyear_mate") #SITE CHANGE
-colnames(p2)[c(8,9,6,7,14,13,16,15)] <- c("ring","code","mate_ring","mate_code", "mol_sex_focal","mol_sex_mate", "captured_focalyear_focal","captured_focalyear_mate") #SITE CHANGE #FOUND ERROR...18/03/2016 column numbers had to be changed
+colnames(p1)[c(6,7,8,9,13,20,14,21,15,16)] <- c("ring","code","mate_ring", "mate_code", "mol_sex_focal","field_sex_focal","mol_sex_mate", "field_sex_mate","captured_focalyear_focal","captured_focalyear_mate") #SITE CHANGE
+colnames(p2)[c(8,9,6,7,14,21,13,20,16,15)] <- c("ring","code","mate_ring","mate_code", "mol_sex_focal","field_sex_focal","mol_sex_mate","field_sex_mate","captured_focalyear_focal","captured_focalyear_mate") #SITE CHANGE #FOUND ERROR...18/03/2016 column numbers had to be changed
 
 #--------------------------------------
 
@@ -575,96 +575,6 @@ head(ids[order(ids$ring), c("code","ring","year")])
 
 ids[nchar(ids$ring)<12 & nchar(ids$ring)>8,]
 
-# #and changes made to Ceuta-------------------
-# cap[cap$ring %in% "BX.WX|SX.",]
-# 
-# ids[ids$ring %in% "BX.WX|SX.",c("ring","code")]<-"BX.WX|SX.XX"
-# 
-# #add code to ring where no metal ring was added:
-# #ids[is.na(ids$ring), "ring"]<-ids$code[is.na(ids$ring)] #more NAs than it should be appear...
-# #ind<-which(is.na(ids$ring) & is.na(ids$year))
-# #ids<-ids[-ind,]
-# 
-# #ids[is.na(ids$ring),"ring"]
-# #ids[ids$code %in% c("BX.WX|BX.OX","RX.MX|YX.BX"),]
-# #str(ids[ids$code %in% c("BX.WX|BX.OX","RX.MX|YX.BX"),])
-# 
-# #ids[ids$code %in% c("BX.WX|BX.OX"),"ring"] <- "BX.WX|BX.OX"
-# #ids[ids$code %in% c("RX.MX|YX.BX"),"ring"] <- "RX.MX|YX.BX"
-#---------continue debug and changes made to Ceuta
-
-# table(ids$code)
-# unique(ids$code) #Maio: 472 unique codes, some ambiguous OX.MX|RX.??
-# regexp<-"([OX]{2})\\.([MX]{2})\\|([RX]{2})\\.([A-Z]{2})$"
-# cap.1[grep(cap.1$code, pat=regexp),]
-# ids[grep(ids$code, pat=regexp),]
-
-#Ceuta changes:
-# which(br$female %in% "CA127") #corrected
-# which(br$male %in% "CA001") #corrected
-# which(ids$ring %in% "CA127 ") #corrected
-# #ids[which(ids$ring %in% "CA001"), "ring"] <- "CA2221" #this ring does not exist in captures, for nest 2006-C-7 in captures the  ring for the male is CA2221
-# #ids[27,]
-# #ids[176,]
-# 
-# ids[ids$year %in% "2006" & ids$site %in% "C" & ids$nest==7,]
-# br[br$year %in% "2006" & br$site %in% "C" & br$nest==7,]
-# 
-# #ids[ids$year %in% "2006" & ids$site %in% "C",]
-# #br[br$year %in% "2006" & br$site %in% "C",]
-# 
-# 
-# cap[cap$ring %in% "802109760",]
-# cap[cap$ring %in% "CA001",]
-# cap[cap$ring %in% "CA127",]
-# cap[cap$code %in% "RX.MX|YX.BX",] #this code does not exist in captures, omit from ids
-# 
-# cap[cap$ring %in% "CA1579",]
-# 
-# 
-# #RM|YB is an inexistent combination, omit from ids:
-# cap.1[cap.1$code %in% "RX.MX|YX.BX",]
-# cap[cap$code %in% "RX.MX|YX.BX",]
-# #is.na(ids[ids$code %in% "RX.MX|YX.BX", "ring"])
-# ids[ids$code %in% "RX.MX|YX.BX",]
-# ids[ids$ring %in% "RX.MX|YX.BX",]
-# 
-# cap[cap$year %in% "2007" & cap$site %in% "B" & cap$nest %in% "109",]
-# ids[ids$year %in% "2007" & ids$site %in% "B" & ids$nest %in% "109",] #code was RW|YB and has been corrected already from BirdRef
-# 
-# ind<-which(ids$ring %in% "RX.MX|YX.BX")
-# #ids[c(177),c("ring","code")] <- "RX.WX|YX.BX" #Male from this nest was captured, correct ring is RX.WX|YX.BX
-# #ids[177,]
-# 
-# ind<-which(ids$code %in% "RX.MX|YX.BX")
-# ids<-ids[-ind,]
-# #ids<-ids[-163,] #Get rid of male from nest 2007-B-1 with inexistent colour combination
-
-#-----Changes made in MAIO, omit from Ceuta------ 
-
-# omit2<-ids[is.na(ids$code)|is.na(ids$ring),c("nest","site","code","ring","year")]
-# # # nest site        code   ring year
-# # # 887  bs--8    S        <NA> CA4094 2014* this was ringed as chick...but it doesn't appear in alex captures
-# # # 546     -9    S OX.RX|WX.WX   <NA> 2012* wrong code...in notes appears as that
-# # # 7521    32    S OX.MX|RX.??   <NA> 2013* incomplete code, not captured
-# # # 8811 bs--2    S        <NA> CA2929 2014* this ring does not exist in captures made note in mistakes of Maio 04/08/2015
-# 
-# str(omit2) #MAIO: 24 obs with missing ring or code
-# cap[cap$ring %in% omit2$ring,] #all have ambiguous codes
-# 
-# 
-# # #omit these for now for data extraction:
-# ind <- which(ids$code %in% omit2$code[!is.na(omit2$code)]| ids$ring %in% omit2$ring[!is.na(omit2$ring)])
-# ids2 <- ids[-ind,]
-# str(ids2) #1102 observations
-# 
-# # #omit negative broods of 2014 that alex found before september
-# pat <- "bs-"
-# ind <- which(str_detect(ids2$nest, pattern=pat))
-# ids2[ind,]#there is no bs--5, but bs--4 and bs--6! bs--5 had been omitted before as no adult was known
-# ids.final <- ids2[-ind,] 
-# ids.final[,c("year","site","nest","code","ring")]
-#  
 
 #----------------------------01/02/2016----
 ids.final<-ids
@@ -982,7 +892,7 @@ for(i in 1:length(ids.final$year)){
   ids.final$laying_date[i] <- as.numeric(ne$laying_date[match(ids.final$nest.id[i], ne$id.nest)])
   ids.final$found_date[i] <- as.numeric(ne$found_date[match(ids.final$nest.id[i], ne$id.nest)])
   ids.final$end_date[i] <- as.numeric(ne$end_date[match(ids.final$nest.id[i], ne$id.nest)])
-  ids.final$fate[i] <- as.numeric(ne$fate[match(ids.final$nest.id[i], ne$id.nest)])
+  ids.final$fate[i] <- as.character(ne$fate[match(ids.final$nest.id[i], ne$id.nest)])
   ids.final$northing[i] <- as.numeric(ne$northing[match(ids.final$nest.id[i], ne$id.nest)])
   ids.final$easting[i] <- as.numeric(ne$easting[match(ids.final$nest.id[i], ne$id.nest)])
   #ids.final$latitude[i] <- ne$Latitude[match(ids.final$nest.id[i], ne$nest.id)]
@@ -1016,6 +926,8 @@ head(ids.final[!is.na(ids.final$clutch_size),])
 str(ids.final)#1756, 1999 after update
 
 ids.final[is.na(ids.final$laying_date),]
+
+
 #-----------------------------------------------------MAD ran up to here 21/March/2016 issue3 was detected so stopped
 
 #         iv. Broodfates (earliest and latest dates when male or female was seen)
@@ -1096,20 +1008,23 @@ table(bf$parent)
 # #10/08/2015 found inconsistent mol_sex in CA3037...bug in BirdRef Cleaning code
 # #corrected BirdRef std file ,/
 #----------------------------------------
-#-----------Add mol_sex to Madagascar...omitted from std file-----------------------------
-head(ids.final)
-head(sex)
-ids.final[is.na(ids.final$ring),]
+#-----------Sex to use: field_sex-----------------------------
+ids.final[!is.na(ids.final$field_sex_focal),]
 
-for (i in 1:length(ids.final$year)){
-  if(!is.na(ids.final$ring)){
-    ids.final$mol_sex_focal[i] <- sex$sex[match(ids.final$ring[i], sex$ring)]
-    if(!is.na(ids.final$mate_ring)){
-      ids.final$mol_sex_mate[i] <- sex$sex[match(ids.final$mate_ring[i], sex$ring)]
-    }
-  }
-}
+ids.final[is.na(ids.final$field_sex_focal) & !is.na(ids.final$mol_sex_focal),"field_sex_focal"]<-ids.final[is.na(ids.final$field_sex_focal) & !is.na(ids.final$mol_sex_focal),"mol_sex_focal"]
 
+str(ids.final[is.na(ids.final$field_sex_focal),]) #357 focals with no sex known
+str(ids.final[!is.na(ids.final$field_sex_focal),]) #1633 focals with known sex
+
+#----------------------------------------#----------------------------------------
+#--------------	Restrict data set to individuals with known field_sex------------------------
+#ids.final.all <- ids.final
+str(ids.final.all) #1990
+head(ids.final.all)
+ids.final2<-ids.final[!is.na(ids.final$field_sex_focal),]
+
+ids.final<-ids.final2
+str(ids.final) #1633
 
 #----------------------------------------
 #----------------------------------------
@@ -1129,6 +1044,7 @@ ids.final$datenot.seen.after.desertion <- NA
 ids.final$bf.quality <- NA
 
 unique(bf$comments)
+names(bf)
 # ids.final$consec.not.seen.all <- NA
 # ids.final$consec.not.seen.any <- NA
 # ids.final$consec.times.not.seen <- NA
@@ -1149,7 +1065,7 @@ for(i in 1:length(ids.final$year)){  #for loop brood fates adults
 
   ids.final$total.brood.res[i] <- length(group.bf$date)
 if(!is.na(ids.final$mol_sex_focal[i]))  
-  if(length(group.bf$date)>0 & ids.final$mol_sex_focal[i] == "M"){
+  if(length(group.bf$date)>0 & ids.final$field_sex_focal[i] == "M"){
     group.bf$counter <- c(1:length(group.bf$date))
     group.bf$date.time<-paste(group.bf$date, group.bf$time, sep="-")  
     group.bf1<-group.bf[group.bf$parents == 3 | group.bf$parents == 4,]
@@ -1177,8 +1093,8 @@ if(!is.na(ids.final$mol_sex_focal[i]))
           ids.final$datenot.seen.after.desertion[i]<-group.bf$date[c[max(which(b$lengths >=2 & b$values==2))] #female desertions ==3, male ==2
                                                       -b$lengths[max(which(b$lengths >=2 & b$values==2))]+1]
           }else{
-            ids.final$last.bf.adult.before.desertion[i] <- "NA"
-            ids.final$datenot.seen.after.desertion[i]<- "NA"
+            ids.final$last.bf.adult.before.desertion[i] <- NA
+            ids.final$datenot.seen.after.desertion[i]<- NA
           }
 #           consec<-group.bf[group.bf$parents==2,]
 #           ids.final$consec.not.seen.all[i] <- all(diff(consec$counter)==1) #if TRUE means that all obs are consecutive, if TRUE at least two obs are non-consecutive
@@ -1188,7 +1104,7 @@ if(!is.na(ids.final$mol_sex_focal[i]))
       }
   }
   
-    if(length(group.bf$date)>0 & ids.final$mol_sex_focal[i] == "F"){
+    if(length(group.bf$date)>0 & ids.final$field_sex_focal[i] == "F"){
       group.bf$date.time<-paste(group.bf$date, group.bf$time, sep="-")  
       group.bf$counter <- c(1:length(group.bf$date))
       group.bf2<-group.bf[group.bf$parents == 2 | group.bf$parents == 4,]
@@ -1217,8 +1133,8 @@ if(!is.na(ids.final$mol_sex_focal[i]))
           ids.final$datenot.seen.after.desertion[i]<-group.bf$date[c[max(which(b$lengths >=2 & b$values==3))] #female desertions ==3, male ==2
                                                                 -b$lengths[max(which(b$lengths >=2 & b$values==3))]+1]   
           }else{
-            ids.final$last.bf.adult.before.desertion[i] <- "NA"
-            ids.final$datenot.seen.after.desertion[i]<- "NA"
+            ids.final$last.bf.adult.before.desertion[i] <- NA
+            ids.final$datenot.seen.after.desertion[i]<- NA
           }
 #           consec<-group.bf[group.bf$parents==3,]
 #           ids.final$consec.not.seen.all[i] <- all(diff(consec$counter)==1) #if FALSE means that all obs are consecutive, if TRUE at least two obs are non-consecutive
@@ -1233,19 +1149,32 @@ if(!is.na(ids.final$mol_sex_focal[i]))
 
 #add first date and last date when brood was seen
 for(i in 1:length(ids.final$year)){ 
-  #print(i)
+  print(i)
   options(warn=0)
   ids.final$first.bf[i] <- min(bf$date[which(ids.final$nest.id[i]== bf$nest.id)])
   ids.final$last.bf[i] <- max(bf$date[which(ids.final$nest.id[i]==bf$nest.id)])
+  ids.final$bf.quality[i] <- ifelse(length(bf$bf.quality[which(ids.final$nest.id[i]== bf$nest.id)])>0,
+                                    bf$bf.quality[which(ids.final$nest.id[i]== bf$nest.id)], 
+                                    NA)
 }
 
+#-------------------add if no bf data was available---------------
+nests.bf<-unique(bf$nest.id)
+
+ids.final$bf.quality[!ids.final$nest.id %in% nests.bf] <- "no data"
+
+#-----------------------------------------------------------------
 #-------debug----------03/02/2016
 head(ids.final)
 rownames(ids.final)<-1:length(ids.final$year)
 names(bf)
 
+#bf.quality is not updated in the for loop and there are several nests with this issue present in ids.final:
+nests.poordata<-bf[bf$bf.quality %in% "poor quality","nest.id"]
+ids.final[ids.final$nest.id %in% nests.poordata,]
+
 min(bf$date[which(ids.final$nest.id[1]== bf$nest.id)])
-bf[bf$nest.id %in% "2007-S--10",]
+bf[bf$nest.id %in% "2013-KiP-10",]
 
 table(ids.final$mol_sex)
 ids.final$first.bf
@@ -1255,7 +1184,7 @@ ids.final[298,]
 
 ids.final$first.bf<-as.numeric(ids.final$first.bf)
 ids.final$last.bf<-as.numeric(ids.final$last.bf)
-str(ids.final[!ids.final$first.bf %in% "Inf" & ids.final$first.bf > ids.final$last.bf,c("first.bf","last.bf","nest.id")])
+str(ids.final[!ids.final$first.bf %in% "Inf" & ids.final$first.bf > ids.final$last.bf,c("first.bf","last.bf","nest.id")])#0 cases
 bf[bf$nest.id %in% "2009-A-6",]
 str(bf$date)
 str(ids.final[!is.na(ids.final$first.bf),]) #MAIO: 523 non NAs, 428 NAs (up to 2014);
