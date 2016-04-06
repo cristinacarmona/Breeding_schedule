@@ -32,6 +32,7 @@
 
 #05/04/2016 6th log: mol_sex was blank....load std file and modify this part only ISSUE 5
 #skip all code and create subsection at the bottom
+#06/04/2016 7th log: assigned field_sex will be used to fill up sex of those individuals on subsequent breeding events, created new subsection at the bottom
 #--------------------------------------------------
 #Madagascar
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
@@ -1096,3 +1097,88 @@ str(br[!is.na(br$field_sex_p2),]) #72
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
 
 write.csv(br, "BirdRef_Mad_stdfile_CCI_05Apr2016_v2.csv")
+
+#------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------
+#Assign known field_sex to individuals in other matings:
+br2<-br
+br<-br2
+names(br)
+
+known.fieldsex.p1<-br[!is.na(br$field_sex_p1), c("parent1","field_sex_p1")]
+colnames(known.fieldsex.p1)<-c("ring","field_sex")
+  
+known.fieldsex.p2<-br[!is.na(br$field_sex_p2), c("parent2","field_sex_p2")]
+colnames(known.fieldsex.p2)<-c("ring","field_sex")
+
+known.fieldsex<-rbind(known.fieldsex.p1,known.fieldsex.p2)
+
+#check how many sexes are still unknown
+str(br[is.na(br$mol_sex_p1)& !is.na(br$parent1) & is.na(br$field_sex_p1),])#480
+str(br[is.na(br$mol_sex_p2) & !is.na(br$parent2) & is.na(br$field_sex_p2),])#187
+
+
+for(i in 1:length(br$year)){
+  if(is.na(br$mol_sex_p1[i]) & !is.na(br$parent1[i]) & is.na(br$field_sex_p1[i])){
+    br$field_sex_p1[i]<- known.fieldsex$field_sex[match(br$parent1[i], known.fieldsex$ring)]
+  }
+  if(is.na(br$mol_sex_p2[i]) & !is.na(br$parent2[i]) & is.na(br$field_sex_p2[i])){
+    br$field_sex_p2[i]<- known.fieldsex$field_sex[match(br$parent2[i], known.fieldsex$ring)]
+  }
+}
+
+#Check how many sexes were added
+str(br[is.na(br$mol_sex_p1)& !is.na(br$parent1) & is.na(br$field_sex_p1),])#480 after for loop 456
+str(br[is.na(br$mol_sex_p2) & !is.na(br$parent2) & is.na(br$field_sex_p2),])#187 after for loop 184
+
+
+#Can more complementary sexes be added?
+br[!is.na(br$field_sex_p1) & !is.na(br$parent2) & is.na(br$mol_sex_p2) & is.na(br$field_sex_p2),]
+
+br[!is.na(br$field_sex_p1) & !is.na(br$parent2) & is.na(br$mol_sex_p2) & br$field_sex_p1 %in% "M","field_sex_p2"] <- "F"
+br[!is.na(br$field_sex_p1) & !is.na(br$parent2) & is.na(br$mol_sex_p2) & br$field_sex_p1 %in% "F","field_sex_p2"] <- "M"
+
+br[!is.na(br$field_sex_p2) & !is.na(br$parent1) & is.na(br$mol_sex_p1) & is.na(br$field_sex_p1) & br$field_sex_p2 %in% "M","field_sex_p1"] <- "F"
+br[!is.na(br$field_sex_p2) & !is.na(br$parent1) & is.na(br$mol_sex_p1) & is.na(br$field_sex_p1) & br$field_sex_p2 %in% "F",]#none
+
+#--------------------------Run known fieldsex again
+known.fieldsex.p1<-br[!is.na(br$field_sex_p1), c("parent1","field_sex_p1")]
+colnames(known.fieldsex.p1)<-c("ring","field_sex")
+
+known.fieldsex.p2<-br[!is.na(br$field_sex_p2), c("parent2","field_sex_p2")]
+colnames(known.fieldsex.p2)<-c("ring","field_sex")
+
+known.fieldsex<-rbind(known.fieldsex.p1,known.fieldsex.p2)
+
+#check how many sexes are still unknown
+str(br[is.na(br$mol_sex_p1)& !is.na(br$parent1) & is.na(br$field_sex_p1),])#480...after 1st for 456
+str(br[is.na(br$mol_sex_p2) & !is.na(br$parent2) & is.na(br$field_sex_p2),])#187...after 1st run 179
+
+
+for(i in 1:length(br$year)){
+  if(is.na(br$mol_sex_p1[i]) & !is.na(br$parent1[i]) & is.na(br$field_sex_p1[i])){
+    br$field_sex_p1[i]<- known.fieldsex$field_sex[match(br$parent1[i], known.fieldsex$ring)]
+  }
+  if(is.na(br$mol_sex_p2[i]) & !is.na(br$parent2[i]) & is.na(br$field_sex_p2[i])){
+    br$field_sex_p2[i]<- known.fieldsex$field_sex[match(br$parent2[i], known.fieldsex$ring)]
+  }
+}
+
+str(br[is.na(br$mol_sex_p1)& !is.na(br$parent1) & is.na(br$field_sex_p1),])#480...after 1st for 456....after 2nd run 451
+str(br[is.na(br$mol_sex_p2) & !is.na(br$parent2) & is.na(br$field_sex_p2),])#187...after 1st run 179..after 2nd run 177
+
+
+
+#---------------------------------------
+br[!is.na(br$field_sex_p1) & !is.na(br$parent2) & is.na(br$field_sex_p2) & is.na(br$mol_sex_p2),]
+br[!is.na(br$field_sex_p2) & !is.na(br$parent1) & is.na(br$field_sex_p1) & is.na(br$mol_sex_p1),]
+
+
+#------------------------------------------------------------------------------------------
+#-------------------------------------Write BirdRef_std NEW------------------------------------
+#------------------------------------------------------------------------------------------
+
+setwd("F:/Plovers/3rd Chapter/input/Madagascar")
+
+write.csv(br, "BirdRef_Mad_stdfile_CCI_06Apr2016_v4.csv")
