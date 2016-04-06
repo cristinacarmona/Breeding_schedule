@@ -205,64 +205,6 @@ table(cap$age)
 cap$age <- gsub("C","J", cap$age)
 #table(cap$age)
 
-# #other errors found in Ceuta:
-# 
-# #[6] "CA001" ring changed
-# br[which(br$male %in% "CA001"), "male"]
-# #br[which(br$male %in% "CA001"), "male"] <- "CA2221" #this ring does not exist in captures, for nest 2006-C-7 in captures the  ring for the male is CA2221
-# 
-# #[7] g instead of L:
-# #2006-D-2 and 2006-D-41
-# #br[br$male %in% "BX.WX|gX.XX", "male"] <- "BX.WX|LX.XX"
-# 
-# #2007-A-131
-# #br[br$male%in% "RX.gX|BX.WX", "male"] <- "RX.LX|BX.WX"
-# 
-# #[8] extra space in Site of nest "2008-A-21 (in birdref):
-# #br[br$nest %in% "21" & br$year %in% "2008" & br$site %in% "A", "site"] <- "A"
-# br[br$year %in% "2008" & br$nest %in% "21", "site"] <- "A"
-# 
-# #previous list of codes in wrong format:
-# #[1]
-# #cap[cap$code %in% "XX.WB|XX.RWM",] #correct
-# #cap[cap$ring %in% "802109721",]
-# 
-# #[2]
-# #cap[cap$code %in% "XX.WX|XX.WMY",] #correct
-# #cap[cap$ring %in% "802109744",]
-# 
-# #[3]
-# #cap[cap$code %in% "XX.YR|XX.WWM",] #correct
-# #cap[cap$ring %in% "802109716",]
-# 
-# #[4]
-# regexp1 <- "([WX]{2})\\.([BX]{2})\\|([BX]{2})\\.([YM]{2})" #add $ at the end to find exact match
-# ind<-str_detect(cap$code, pattern=regexp1)
-# cap[ind,]
-# 
-# cap[cap$ring %in% "802109760",]
-# #br[br$female %in% "802109760", "female"]#<-"CA1579" #comment in Clemens newest file: CR identical to CA1579 but most likely dead
-# cap[cap$ring %in% "802109760", "code"] <- "WX.BX|BX.YM"#
-# cap[cap$ring %in% c("CA1579", "802109765"),]
-# #cap[cap$ring %in% "CA1579", "code"] <- "WX.BX|BX.YM" #CR changed previously WX.BX|sX.YM, 
-#                                       #plus one with wrong code: LM|LB??? from nest 2010-A-105, 
-#                                       #it seems that ring was wrong in the captures file I had? 
-#                                       #in Luke's file it appears as CA1253 which belongs to LM|LB
-# cap[cap$ID %in% "2010_A_105",] #Wrote Medardo 09/02/2016, wait for reply
-# br[br$female %in% "CA1253",]
-# br[br$female %in% "CA1579",]
-# 
-# #WX.BX|sX.YM look for this in resightings:
-# re[re$code %in% "WX.BX|sX.YM",c("code","year")]
-# re[re$code %in% "WX.BX|sX.YM","code"]<- "WX.BX|BX.YM" #change!
-# cap[cap$code %in% "WX.BX|sX.YM",]
-# cap[cap$code %in% "WX.BX|BX.YM",]
-# 
-# 
-# #[5]
-# #cap[cap$code %in% "BX.MX|GX.BX",]
-# #cap[cap$code %in% "BX.MX|GX.BX","code"]
-# #cap[cap$code %in% "BX.MX|GX.BX ", "code"] <- "BX.MX|GX.BX"
 #-----------------------------------------------------------------
 
   #a) find duplicates in Ceuta:
@@ -297,30 +239,7 @@ head(ldup[order(ldup$code),], n=1300)
 
 #Get rid of ambiguous codes to delete duplicates:
 pat0<-"X"
-#------debug pat0---
-# ldup[str_detect(ldup$code, pattern=pat0),]
-# #------------------
-# #pat<- "XX.XX"#get rid of ambiguous codes from list of duplicates
-# pat<- "X\\.X"
-# #------debug pat-----
-# ldup[str_detect(ldup$code, pattern=pat),]
-# #----------------------
-# pat2<- "\\.X\\|[A-Z]{1}\\.X"
-# #----debug pat2---
-# ldup[str_detect(ldup$code, pattern=pat2),]
-# #---------------
-# pat3<- "X\\.[A-Z]{1}\\|X\\.[A-Z]{1}"
-# #----debug pat3---
-# ldup[str_detect(ldup$code, pattern=pat3),]
-#---------------
-# pat<- "X"
-# #pat2 <- ".XX"
-#  x <- ldup[!str_detect(ldup$code, pattern=pat) #Ceuta
-#             & !str_detect(ldup$code, pattern=pat2),] 
 
-#   x <- ldup[!str_detect(ldup$code, pattern=pat) #MAd
-#              & !str_detect(ldup$code, pattern=pat2)
-#             & !str_detect(ldup$code, pattern=pat3),] 
 library(stringr)
 x0 <- ldup[!str_detect(ldup$code, pattern=pat0),] #allow no Xs in codes (MAD)
 
@@ -331,15 +250,6 @@ str(x0) #MAD: 1676
 x0[order(x0$code),]
 # 
 library(stringr) 
-#x <- ldup[!str_detect(ldup$code, pattern=pat),]
-# ind <- grep(ldup$sp_code, pattern=pat)
-# with.x <- ldup[ind,]
-# head(with.x)
-# 
-# head(with.x[order(with.x$sp_code),])
-# str(x) #Mad: 3502 obs
-# head(x)
-# ind <- which(duplicated(x$code) | duplicated(x$code, fromLast=TRUE)) 
 
 x0$sp.code <- paste(x0$sp, x0$code, sep="-")
 
@@ -359,11 +269,6 @@ x1[order(x1$code),]
 # 
 dupl <- x1 #List of rings with duplicated codes 
 str(dupl) #36 Ceuta, 168 in Mad without Juv
-# #-------------debug duplicates-------------------
-# cap[cap$ring %in% "CA2370",]
-# cap[cap$ring %in% "CV007",]
-# cap[cap$code %in% "OX.MX|GX.WX",]
-# 
 # 
 # #------------------------------------------------
 
@@ -397,33 +302,7 @@ library(stringr)
 # 1. List all appearances of each individual in a year:
 #   a. List all known males and females in BirdRef, 
 #   a.1 use omit1 to clear duplicates
-# names(br)
-# head(br)
-# males.with.dupl <- br[!is.na(br$male) &
-#                         br$male != "XX.XX|XX.XX",]
-# names(males.with.dupl)
-# males <- males.with.dupl[!males.with.dupl$male %in% omit1, ] 
-#Ceuta: males$sex <- "M"
-#Ceuta: males$mate_sex <- "F"
 
-# males$ring
-# 
-# females.with.dupl <- br[!is.na(br$female) & 
-#                           br$female != "XX.XX|XX.XX",] #SITE CHANGE
-# females <- females.with.dupl[!females.with.dupl$female %in% omit1,]
-#Ceuta: females$sex <- "F"
-#Ceuta: females$mate_sex <-"M"
-#MAIO:
-#colnames(males)[c(4,5,9:14)] <- c("ring","mate_ring","field_sex_focal","mol_sex_focal","captured_focalyear_focal","field_sex_mate","mol_sex_mate","captured_focalyear_mate") #SITE CHANGE
-
-#CEUTA: (change cols to change names)
-#colnames(males)[c(10,11,19,20)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
-#MAIO:
-#colnames(females)[c(5,4,9:14)] <- c("ring","mate_ring","field_sex_mate","mol_sex_mate","captured_focalyear_mate","field_sex_focal","mol_sex_focal","captured_focalyear_focal") #SITE CHANGE
-
-#CEUTA: (change cols to change names)
-#colnames(females)[c(11,10,19,20)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
-#tail(females)
 #-------------------------------------
 #a.1 Madagascar:
 
