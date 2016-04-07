@@ -33,6 +33,8 @@
 #05/04/2016 6th log: mol_sex was blank....load std file and modify this part only ISSUE 5
 #skip all code and create subsection at the bottom
 #06/04/2016 7th log: assigned field_sex will be used to fill up sex of those individuals on subsequent breeding events, created new subsection at the bottom
+
+#07/04/2016 8th log: solve issue 7, some nests have parents ids in brood fates and no id in birdref, fix only these cases. Created version 5 of std file
 #--------------------------------------------------
 #Madagascar
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
@@ -1083,12 +1085,12 @@ br[br$mol_sex_p2 %in% "M" & !is.na(br$parent1) & is.na(br$mol_sex_p1), "field_se
 br[br$mol_sex_p2 %in% "F" & !is.na(br$parent1) & is.na(br$mol_sex_p1),"field_sex_p1"] <- "M"
 
 #check which are still missing
-str(br[!is.na(br$parent1) & is.na(br$mol_sex_p1) & is.na(br$field_sex_p1),c(2:6,8,15,16)])#480 with known id but unknown sex in both p1 and p2
+str(br[!is.na(br$parent1) & is.na(br$mol_sex_p1) & is.na(br$field_sex_p1),c(2:6,8,15,16)])#488 with known id but unknown sex in both p1 and p2
 
-str(br[!is.na(br$mol_sex_p1),]) #1251 known mol_sexe_p1
-str(br[!is.na(br$mol_sex_p2),]) #447
+str(br[!is.na(br$mol_sex_p1),]) #1266 known mol_sexe_p1
+str(br[!is.na(br$mol_sex_p2),]) #461
 str(br[!is.na(br$field_sex_p1),]) #40
-str(br[!is.na(br$field_sex_p2),]) #72
+str(br[!is.na(br$field_sex_p2),]) #73
 
 #------------------------------------------------------------------------------------------
 #-------------------------------------Write BirdRef_std NEW------------------------------------
@@ -1112,11 +1114,11 @@ colnames(known.fieldsex.p1)<-c("ring","field_sex")
 known.fieldsex.p2<-br[!is.na(br$field_sex_p2), c("parent2","field_sex_p2")]
 colnames(known.fieldsex.p2)<-c("ring","field_sex")
 
-known.fieldsex<-rbind(known.fieldsex.p1,known.fieldsex.p2)
+known.fieldsex<-rbind(known.fieldsex.p1, known.fieldsex.p2)
 
 #check how many sexes are still unknown
-str(br[is.na(br$mol_sex_p1)& !is.na(br$parent1) & is.na(br$field_sex_p1),])#480
-str(br[is.na(br$mol_sex_p2) & !is.na(br$parent2) & is.na(br$field_sex_p2),])#187
+str(br[is.na(br$mol_sex_p1)& !is.na(br$parent1) & is.na(br$field_sex_p1),])#488
+str(br[is.na(br$mol_sex_p2) & !is.na(br$parent2) & is.na(br$field_sex_p2),])#188
 
 
 for(i in 1:length(br$year)){
@@ -1129,8 +1131,8 @@ for(i in 1:length(br$year)){
 }
 
 #Check how many sexes were added
-str(br[is.na(br$mol_sex_p1)& !is.na(br$parent1) & is.na(br$field_sex_p1),])#480 after for loop 456
-str(br[is.na(br$mol_sex_p2) & !is.na(br$parent2) & is.na(br$field_sex_p2),])#187 after for loop 184
+str(br[is.na(br$mol_sex_p1)& !is.na(br$parent1) & is.na(br$field_sex_p1),])#480 after for loop 456....after adding new ones 464
+str(br[is.na(br$mol_sex_p2) & !is.na(br$parent2) & is.na(br$field_sex_p2),])#187 after for loop 184.....after adding new ones 785
 
 
 #Can more complementary sexes be added?
@@ -1152,8 +1154,8 @@ colnames(known.fieldsex.p2)<-c("ring","field_sex")
 known.fieldsex<-rbind(known.fieldsex.p1,known.fieldsex.p2)
 
 #check how many sexes are still unknown
-str(br[is.na(br$mol_sex_p1)& !is.na(br$parent1) & is.na(br$field_sex_p1),])#480...after 1st for 456
-str(br[is.na(br$mol_sex_p2) & !is.na(br$parent2) & is.na(br$field_sex_p2),])#187...after 1st run 179
+str(br[is.na(br$mol_sex_p1)& !is.na(br$parent1) & is.na(br$field_sex_p1),])#480...after 1st for 456....462 after adding new ids
+str(br[is.na(br$mol_sex_p2) & !is.na(br$parent2) & is.na(br$field_sex_p2),])#187...after 1st run 179....180 after adding new ids
 
 
 for(i in 1:length(br$year)){
@@ -1165,8 +1167,8 @@ for(i in 1:length(br$year)){
   }
 }
 
-str(br[is.na(br$mol_sex_p1)& !is.na(br$parent1) & is.na(br$field_sex_p1),])#480...after 1st for 456....after 2nd run 451
-str(br[is.na(br$mol_sex_p2) & !is.na(br$parent2) & is.na(br$field_sex_p2),])#187...after 1st run 179..after 2nd run 177
+str(br[is.na(br$mol_sex_p1)& !is.na(br$parent1) & is.na(br$field_sex_p1),])#480...after 1st for 456....after 2nd run 451....459 after adding new ids
+str(br[is.na(br$mol_sex_p2) & !is.na(br$parent2) & is.na(br$field_sex_p2),])#187...after 1st run 179..after 2nd run 177....178 after adding new ids
 
 
 
@@ -1181,4 +1183,112 @@ br[!is.na(br$field_sex_p2) & !is.na(br$parent1) & is.na(br$field_sex_p1) & is.na
 
 setwd("F:/Plovers/3rd Chapter/input/Madagascar")
 
-write.csv(br, "BirdRef_Mad_stdfile_CCI_06Apr2016_v4.csv")
+write.csv(br, "BirdRef_Mad_stdfile_CCI_07Apr2016_v5.csv")
+
+#------------------------------------------------------------------------------------#------------------------------------------------------------------------------------#------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------
+
+#SOLVE issue 7 Parents ids known in broodfates and not updated in birdref
+names(bf)
+
+bf.p1 <- unique(bf$nestid.ring1[!is.na(bf$parent1)])
+bf.p2 <- unique(bf$nestid.ring2[!is.na(bf$parent2)])  
+
+bf.ids1<-union(bf.p1,bf.p2)
+
+bf.ids<-unique(bf.ids1) #623
+
+ids.bf <-strsplit(bf.ids, "_")
+library(plyr)
+ids.bf1 <- ldply(ids.bf) #turn list into two columns
+#colnames(ldup) <- c("code","ring")
+colnames(ids.bf1) <- c("nest.id","ring") 
+  
+table(ids.bf1$nest.id)  
+  
+#----------------------------------------------------
+#extract broods with no parents ids from birdref
+names(br)
+
+br$nest.id <- paste(br$year, br$species, br$nest, sep="-")
+
+na.p1andp2<-br[is.na(br$parent1) & is.na(br$parent2) & is.na(br$error.p),"nest.id"] #277
+
+na.nests.fix<-intersect(na.p1andp2, ids.bf1$nest.id)
+
+br[br$nest.id %in% na.nests.fix,]
+
+#------
+which(br$nest.id %in% "2013-KiP--102")
+i<-749
+#------
+
+for(i in 1:length(br$year)){
+  if(br$nest.id[i] %in% na.nests.fix){
+    ind<-which(ids.bf1$nest.id %in% br$nest.id[i])
+    cc<-ids.bf1[ind, "ring"]
+    if(length(cc)<2){
+      br$parent1[i]<-cc
+      }else{
+        if(length(cc)>1){
+          br$parent1[i]<-cc[1]
+          br$parent2[i]<-cc[2]
+        }
+      }
+  }
+  }
+  
+#------------------
+str(br[br$nest.id %in% na.nests.fix,])
+br[br$nest.id %in% na.nests.fix,"comments_stdfile"] <- "parents ids based on brood fates observations (CCI 2016)"
+
+#-------------------------------------------------
+#extract broods with 1 parent id only from birdref
+names(br)
+
+na.p2<-br[is.na(br$parent2) & !is.na(br$parent1) & is.na(br$error.p) & !br$nest.id %in% na.nests.fix,"nest.id"] #1084
+
+na.nests.fix2<-intersect(na.p2, ids.bf1$nest.id) #249
+
+#only include nests from brood fates that had more than 1 parent present:
+b<-as.data.frame(table(ids.bf1$nest.id))
+bf.idsmore1<-as.character(b[b$Freq>1, "Var1"])
+
+na.nests.fix3<-intersect(na.p2, bf.idsmore1) #13
+
+br[br$nest.id %in% na.nests.fix3,]
+
+#------
+which(br$nest.id %in% "2013-KiP--28")
+i<-803
+#------
+bref<-br
+br<-bref
+
+for(i in 1:length(br$year)){
+  print(i)
+  if(br$nest.id[i] %in% na.nests.fix3){
+    ind<-which(ids.bf1$nest.id %in% br$nest.id[i])
+    cc<-ids.bf1[ind, "ring"]
+    if(br$parent1[i] %in% cc){
+      ind.2<-which(!cc %in% br$parent1[i])
+      br$parent2[i]<-cc[ind.2]
+    }else{
+      if(!br$parent1[i] %in% cc){
+      br$error.p[i] <-capture.output(cat ("Inconsistent parent ids from captures and brood fates, ids in brood fates:", " - ", as.character(cc), "\n"))
+      }
+    }
+  }
+}
+
+#------------------
+str(br[br$nest.id %in% na.nests.fix3,]) #13
+br[br$nest.id %in% na.nests.fix3,"comments_stdfile"] <- "parent2 id based on brood fates observations (CCI 2016)"
+br[br$nest.id %in% na.nests.fix3,"captured_focalyear_p2"] <-"no"
+
+
+
+
+
+
+#--------run mol_sex part lines(1052-1179)-----------------

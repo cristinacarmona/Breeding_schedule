@@ -46,6 +46,7 @@
 #03/04/2016 10th log - Ran into error in nests file as laying dates are missing
 #04/04/2016 11th log - Produced nest std file, will restart code tomorrow
 #05/04/2016 12th log - Re-start running code
+#06/04/2016 13th log - up to line 1297, issue7 
 
 #---------------------------------------------------------------
 #Maio
@@ -1231,6 +1232,7 @@ str(bf[ind,c("parents","chicks","nest.id","date")]) #715 with repeated dates
 #prepare bf data:
 
 bf1<-bf
+colnames(bf1)[32]<-"chicks"
 table(bf1$chicks)
 #bf1$chicks[bf1$chicks %in% "0+"]<- 0
 #bf1$chicks[bf1$chicks %in% "+"]<- 0
@@ -1274,13 +1276,14 @@ for(i in 1:length(ids.final$year)){
 }
 
 #-------debug----------
+i<-1584
 str(bf[bf$chicks==0,]) #MAIO: 1995 (2014); 2741 (2015)
 str(bf[bf$chicks =="#N/A",])#323 NAs, 
 str(bf[bf$chicks !="#N/A",]) #2249 not NAs
 
 head(ids.final)
 tail(ids.final)
-ind<-sample(rownames(ids.final[ids.final$fate %in% "HATCH",]),5) #Maio: checked 5 at random and they were ok
+ind<-sample(rownames(ids.final[ids.final$fate %in% "HATCH",]),5) #Maio: checked 5 at random and they were ok, #Mad: checked 5 at random and they were ok
 ids.final[ind,]
 
 
@@ -1292,14 +1295,15 @@ cap[cap$year.ring %in% "2007-CA172",]
 ne[ne$nest.id =="2007-A-122",]
 bf[bf$nest.id =="2010-A-16",]
 
+#******************************************************************************
 #------look for a case where female disappeared for more than 2 times and count
-ids.final[ids.final$total.brood.res >5 & ids.final$times.adult.not.seen >1 
+ids.final[ids.final$total.brood.res >3 & ids.final$times.adult.not.seen >1 
             #& ids.final$times.adult.not.seen <3
             ,c("times.adult.not.seen", "total.brood.res","nest.id")]
 
 bf[,c("nest.id","parents","date")]
-bf1[bf1$nest.id =="2010-S-92",]
-ids.final[ids.final$nest.id =="2010-S-92",]
+bf1[bf1$nest.id =="2013-WfP-121",] #
+ids.final[ids.final$nest.id =="2014-WfP-110",]
 
     #debug: for loop brood fates adults
 ind <- which(ids.final$nest.id[298] == bf$nest.id)
