@@ -48,6 +48,7 @@
 #05/04/2016 12th log - Re-start running code
 #06/04/2016 13th log - up to line 1297, issue7
 #07/04/2016 14th log - re-start, solved issue 7 (codes of new ids have to be added)
+#08/04/2016 15th log - finished code produced file, check for errors [nest.id has to include site]
 
 #---------------------------------------------------------------
 #Maio
@@ -587,10 +588,12 @@ str(ids.final) #1038 obs Ceuta; 1085 (09/02/2016, using BirdSoc);1031 (10/02/201
 table(ids.final$year) 
 table(ids.final$site)
 #ids.final$nest.id <- paste(ids.final$year, ids.final$site, ids.final$nest, sep="-")
-ids.final$nest.id <- paste(ids.final$year, ids.final$species, ids.final$nest, sep="-")
+
+ids.final$nest.id <- paste(ids.final$year, ids.final$species, ids.final$site, ids.final$nest, sep="-")
+
 unique(ids.final$nest.id) #CEUTA 602; 601 (10/02/2016, using BirdSoc up to 2012)
                           #MAIO 721
-                          #Mad 1472
+                          #Mad 1490
 
 
 #       a.3 Add year when metal was added and year when code was added (copied from create colour code field sheet.R)
@@ -735,6 +738,7 @@ ids.final[ids.final$mate_ring %in% "Luke?", c("mate_code","mate_ring")]<-NA
 
 #prepare resightings file:
 re$date
+table(re$site)
 min(cap$date); min(re$date)
 max(cap$date); max(re$date)
 re[is.na(re$date),]
@@ -767,8 +771,22 @@ names(re)
 re$real.date <- as.character(re$real.date)
 
 #---------------------------
-ids.final$year.code <- paste(ids.final$year, ids.final$code, sep="-")
-re$year.code <- paste(re$year, re$code, sep="-")
+#ids.final$year.code <- paste(ids.final$year, ids.final$code, sep="-")
+#re$year.code <- paste(re$year, re$code, sep="-")
+
+#in Madagascar has to be year.species.code as codes are species specific
+ids.final$year.species.site.code <- paste(ids.final$year, ids.final$species, ids.final$site,ids.final$code, sep="-")
+
+
+table(ids.final$species)
+table(re$species)
+table(re$site)
+
+re$species[re$species %in% "Kip"] <- "KiP"
+re$species[re$species %in% c("WFP","WP")]<-"WfP"
+re$year.species.site.code <- paste(re$year, re$species, re$site ,re$code, sep="-")
+
+
 
 ids.final$first.res <- NA
 ids.final$last.res <- NA
@@ -776,7 +794,7 @@ ids.final$last.res <- NA
 
 for(i in 1:length(ids.final$year)){ 
   #ind <- grep(ids.final$year.code[i], re$year.code, fixed=TRUE) #corrected bug
-  ind <- which(ids.final$year.code[i]==re$year.code)
+  ind <- which(ids.final$year.species.site.code[i]==re$year.species.site.code)
   group.res<-re[ind,]
 
   if(length(group.res$year)>0){
@@ -792,10 +810,12 @@ ids.final$first.res
 ids.final$last.res 
 
 #-----debug------
-ids.final[250,]
+rownames(ids.final)<-c(1:length(ids.final$year))
+i<-2017
+ids.final[2017,]
 max(group.res$real.date)
 
-head(ids.final)
+tail(ids.final)
 ind <- grep(ids.final$year.code[250], re$year.code, fixed=TRUE) #use which instead of grep
 group.res<-re[ind,]
 #---------------------
@@ -883,7 +903,8 @@ head(ids.final)
 
 #re-label species in Nests to create nest.id
 table(ne$species)
-ne$id.nest <- paste(ne$year, ne$species, ne$nest, sep="-")
+ne$id.nest <- paste(ne$year, ne$species,ne$site, ne$nest, sep="-")
+ids.final$nest.id
 #ne[ne$species %in% "KIP","species"] <- "KiP"
 #ne[ne$species %in% "WFP","species"] <- "WfP"
 
@@ -947,7 +968,8 @@ ids.final[is.na(ids.final$laying_date),]
 names(bf)
 #bf$nest.id <- paste(bf$year, bf$site, bf$brood, sep="-") #MAIO CEUTA
 table(bf$species)
-bf$nest.id <- paste(bf$year, bf$species, bf$brood, sep="-") #MAD
+table(bf$site)
+bf$nest.id <- paste(bf$year, bf$species, bf$site, bf$brood, sep="-") #MAD
 #------------------------------
 #NEW SECTION ADDED after Maio's 2nd run
 bf$date <- as.numeric(bf$date)
@@ -1507,7 +1529,8 @@ names(ids.final)
 
 #cap$nest.id <- paste(cap$year, cap$site, cap$nest, sep="-")
 table(cap$species)
-cap$nest.id <- paste(cap$year, cap$species, cap$nest, sep="-")
+table(cap$site)
+cap$nest.id <- paste(cap$year, cap$species,cap$site, cap$nest, sep="-")
 #-----------------------
 #omit chicks with no metal ring
 
@@ -1627,13 +1650,20 @@ cap<-cap1
 #cap1[ind,]
 #cap<-cap1[-ind,]
 #----------------------
+#Use cap.original from now on
+
+cap.o<-cap.original
+cap.o[is.na(cap.o$ring) & !is.na(cap.o$code), "ring"]<-cap.o[is.na(cap.o$ring) & !is.na(cap.o$code), "code"]
+cap.o$nest.id<-paste(cap.o$year, cap.o$species,cap.o$site, cap.o$nest, sep="-")
+cap.o$year.ring<-paste(cap.o$year, cap.o$ring, sep="-")
 
  #chicks with no metal ring will need extra step:
-cap[is.na(cap$ring) & !is.na(cap$code),]
+# cap[is.na(cap$ring) & !is.na(cap$code),]
+# 
+# cap$ring2 <- ifelse(is.na(cap$ring) & !is.na(cap$code), cap$code, NA)
+# cap$ring <- ifelse(!is.na(cap$ring2), cap$ring2, cap$ring) #replace NA of chicks without metal ring with code
+# cap$year.ring <- paste(cap$year, cap$ring, sep="-")
 
-cap$ring2 <- ifelse(is.na(cap$ring) & !is.na(cap$code), cap$code, NA)
-cap$ring <- ifelse(!is.na(cap$ring2), cap$ring2, cap$ring) #replace NA of chicks without metal ring with code
-cap$year.ring <- paste(cap$year, cap$ring, sep="-")
 ids.final1$year.chick1 <- paste(ids.final1$year, ids.final1$chick1, sep="-")
 ids.final1$year.chick2 <- paste(ids.final1$year, ids.final1$chick2, sep="-")
 ids.final1$year.chick3 <- paste(ids.final1$year, ids.final1$chick3, sep="-")
@@ -1655,12 +1685,7 @@ ids.final1$chick3.bill<-NA
 ids.final1$chick3.tarsus <-NA
 ids.final1$chick3.weight<-NA
 #-------------------
-#Use cap.original from now on
 
-cap.o<-cap.original
-cap.o[is.na(cap.o$ring) & !is.na(cap.o$code), "ring"]<-cap.o[is.na(cap.o$ring) & !is.na(cap.o$code), "code"]
-cap.o$nest.id<-paste(cap.o$year, cap.o$species, cap.o$nest, sep="-")
-cap.o$year.ring<-paste(cap.o$year, cap.o$ring, sep="-")
 
 str(cap)
 table(cap$age)
@@ -1839,35 +1864,35 @@ tail(cap)
 cap[cap$ring %in% "FH17820",]
 
 #----------------------------
-cap[cap$nest.id %in% "2007-S--2",]
-#--MAIO: iterations that run with error: 731,611,198 (on second run),95
-
-#95 "2009-S-201" -> one chick was captured twice on the same day...omit second capture (line 651)
-ids.final1[ids.final1$nest.id %in% "2009-S-201",]
-cap[cap$nest.id %in% "2009-S-201",]
-
-#198 "2010-S-32" and "2010-S-326": grep is summoning 32 and 326...*code bug
-#fixed: use which instead of grep...change rest of coding
-
-#611 "2009-S-201" ,/
-
-#731 "2010-S-32" ,/
-
-#198 second run after debugging: CA3461 has two captures on the same day. Omit second capture (line 651)
-
-#---------------------------------------
-#MAIO DEBUG 16/02/2016 for loop chicks (changes made), errors on iterations:
-# [1] 245
-# [1] "nest.id mis-matches captures nest.id"
-# [1] 246
-# [1] 418
-# Warning in min(chick2.measures$date) :
-#   no non-missing arguments to min; returning Inf
-# [1] 419
-# [1] 558
-# [1] "nest.id mis-matches captures nest.id"
-# [1] 559
-# [1] 776
+# cap[cap$nest.id %in% "2007-S--2",]
+# #--MAIO: iterations that run with error: 731,611,198 (on second run),95
+# 
+# #95 "2009-S-201" -> one chick was captured twice on the same day...omit second capture (line 651)
+# ids.final1[ids.final1$nest.id %in% "2009-S-201",]
+# cap[cap$nest.id %in% "2009-S-201",]
+# 
+# #198 "2010-S-32" and "2010-S-326": grep is summoning 32 and 326...*code bug
+# #fixed: use which instead of grep...change rest of coding
+# 
+# #611 "2009-S-201" ,/
+# 
+# #731 "2010-S-32" ,/
+# 
+# #198 second run after debugging: CA3461 has two captures on the same day. Omit second capture (line 651)
+# 
+# #---------------------------------------
+# #MAIO DEBUG 16/02/2016 for loop chicks (changes made), errors on iterations:
+# # [1] 245
+# # [1] "nest.id mis-matches captures nest.id"
+# # [1] 246
+# # [1] 418
+# # Warning in min(chick2.measures$date) :
+# #   no non-missing arguments to min; returning Inf
+# # [1] 419
+# # [1] 558
+# # [1] "nest.id mis-matches captures nest.id"
+# # [1] 559
+# # [1] 776
 # [1] "nest.id mis-matches captures nest.id"
 # [1] 777
 # [1] 797
@@ -2054,6 +2079,21 @@ ind<-which(ids.final3$check.estld<(-5))
 ids.final3[ind,]
 
 head(ids.final3)
+
+ids.final3[!is.na(ids.final3$hatch_date),"nest.id"]
+
+#----------------------------ADD Lukes hatch_dates-------------
+head(hatch)
+hatch$id.nest <- paste(hatch$year, hatch$species, "Andavadoaka",hatch$nest, sep="-")
+
+str(ids.final3[is.na(ids.final3$hatch_date),"nest.id"]) #1440
+
+for(i in 1:length(ids.final3$year)){
+  if(is.na(ids.final3$hatch_date[i])){
+    ids.final3$hatch_date[i] <- hatch$Hatch_date[match(ids.final3$nest.id[i], hatch$id.nest)]
+  }
+}
+str(ids.final3[is.na(ids.final3$hatch_date),"nest.id"]) #1440 after for loop 1157
 #--------------------------------
 
 #---c. Order and extract first, last and LD----------------------[reordered 05/02/2016]
@@ -2160,11 +2200,21 @@ ids.final[ind3, c("found_date.r","laying_date.r")]
 # cap[cap$age %in% "X",]
 # table(cap$age)
 #----------------------------------
+#no_chicks is wrong....
+
+
+ids.final$no_chicks.new <- apply(ids.final[,c("chick1","chick2","chick3")],1,function(x) length(which(!is.na(x))))
+
+ind<-which(ids.final$no_chicks != ids.final$no_chicks.new)
+ids.final[ind,c("chick1","chick2","chick3","no_chicks","no_chicks.new", "error.ch")]
+ids.final[ind, "no_chicks"]<-ids.final[ind,"no_chicks.new"]
+
+#------------------------------------------
 #choose variables to keep to save csv file:
 names(ids.final)
 #unique(ids.final3$fate)
 #only omit working variables like year.ring, year.chick1, etc.
-to.write<-ids.final[,c(1:24,27:67, 71:92)]
+to.write<-ids.final[,c(1:24,26,27,30:67, 71:92)]
 #to.write<-ids.final3[,c(1:23,49,25:31)]
 
 
@@ -2191,6 +2241,6 @@ to.write<-ids.final[,c(1:24,27:67, 71:92)]
 # write.csv(to.write, "Ceuta_breeding_schedule_data_2007-2012_full dataset_12Feb2016with_molsex.csv")
 
 setwd("F:/Plovers/3rd Chapter/output/Madagascar")
-write.csv(to.write, "Madagascar_breeding_schedule_data_08April2016.csv")
+write.csv(to.write, "Madagascar_breeding_schedule_data_08April2016v3.csv")
 #-----------------------------------------------
 #-----------------------------------------------
