@@ -2164,7 +2164,7 @@ ids.final[ind3, c("found_date.r","laying_date.r")]
 names(ids.final)
 #unique(ids.final3$fate)
 #only omit working variables like year.ring, year.chick1, etc.
-to.write<-ids.final[,c(1:20,22,23,27:28,32:39,43,44,51:59,63:84)]
+to.write<-ids.final[,c(1:24,27:67, 71:92)]
 #to.write<-ids.final3[,c(1:23,49,25:31)]
 
 
@@ -2184,10 +2184,13 @@ to.write<-ids.final[,c(1:20,22,23,27:28,32:39,43,44,51:59,63:84)]
 #-----------------------------------------------
 #-----------------------------------------------
 #------------Write file with data (excluding laying dates for negative broods)---------------
-setwd("F:/Plovers/3rd Chapter/output/Maio")
-write.csv(to.write, "Maio_breeding_schedule_data_2007-2015_17Feb2016.csv")
+# setwd("F:/Plovers/3rd Chapter/output/Maio")
+# write.csv(to.write, "Maio_breeding_schedule_data_2007-2015_17Feb2016.csv")
+# 
+# setwd("F:/Plovers/3rd Chapter/output/Ceuta")
+# write.csv(to.write, "Ceuta_breeding_schedule_data_2007-2012_full dataset_12Feb2016with_molsex.csv")
 
-setwd("F:/Plovers/3rd Chapter/output/Ceuta")
-write.csv(to.write, "Ceuta_breeding_schedule_data_2007-2012_full dataset_12Feb2016with_molsex.csv")
+setwd("F:/Plovers/3rd Chapter/output/Madagascar")
+write.csv(to.write, "Madagascar_breeding_schedule_data_08April2016.csv")
 #-----------------------------------------------
 #-----------------------------------------------
