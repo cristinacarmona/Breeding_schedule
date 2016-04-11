@@ -28,7 +28,7 @@
 #TUZLA (https://github.com/cristinacarmona/Breeding_schedule.git)
 #23/02/2016 1st log: Tuzla names are wrong...change column names
 
-#11/04/2016 2nd log: Re-take code for Tuzla
+#11/04/2016 2nd log: Re-take code for Tuzla, up to brood fates (fixing brood fates parents categories)
 
 #--------------------------------------------------------------
 
@@ -54,7 +54,7 @@ working.list <- import.list
 #Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
 #Maionames(working.list) <- c("br","bf","cap","ne","re","sex","surv")
 #Tuzla
-names(working.list) <- c("br2","br","bf","cap1","cap","ne","re")
+names(working.list) <- c("br","br2","bf","cap1","cap","ne2","ne","re","hatch")
 
 attach(working.list)
 #detach(working.list)
@@ -799,7 +799,7 @@ names(ne)
 names(ids.final)
 
 ne$nest.id <- paste(ne$year, ne$site, ne$nest, sep="-")
-#*****************************generate nes_std file for Tuzla
+#*****************************generate nes_std file for Tuzla ,/ 11/04/2016 done
 for(i in 1:length(ids.final$year)){ 
   ids.final$laying_date[i] <- ne$laying_date[match(ids.final$nest.id[i], ne$nest.id)]
   ids.final$found_date[i] <- ne$found_date[match(ids.final$nest.id[i], ne$nest.id)]
@@ -836,6 +836,7 @@ head(ids.final[!is.na(ids.final$clutch_size),])
 
 #         iv. Broodfates (earliest and latest dates when male or female was seen)
 names(bf)
+head(bf)
 bf$nest.id <- paste(bf$year, bf$site, bf$brood, sep="-")
 #------------------------------
 #NEW SECTION ADDED after Maio's 2nd run
@@ -856,9 +857,9 @@ bf$real.date <- as.Date(ISOdate(bf$year,bf$date%/%100,bf$date%%100), "%Y/%m/%d",
             #check parents categories (4- both, 3-only male, 2-only female)          
               table(bf$parents)
 #Maio
-              bf[bf$parents %in% "2 OR 4",]
+              bf[bf$parents %in% "4 (?)",]
               bf[c(206,136),]
-              bf[bf$parents=="2 OR 3",]
+              bf[bf$parents %in%"2 (3)",]
               bf[bf$parents=="F",]
               bf[bf$parents %in% "4?",]
               bf[bf$parents %in% "?",] 
