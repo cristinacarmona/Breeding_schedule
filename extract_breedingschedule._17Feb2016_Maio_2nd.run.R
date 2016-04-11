@@ -25,8 +25,8 @@
 #11/02/2016 9th log: up to line 1264, solved consecutive observations, however chicks section must change given the brood swapping in Ceuta
 #12/02/2016 10th log: finished, however matching mol_sex from captures is missing...,/ added
 #--------------------------------------------------------------
-#TUZLA
-#23/02/2016 1st log: Tuzla names are wrong...
+#TUZLA (https://github.com/cristinacarmona/Breeding_schedule.git)
+#23/02/2016 1st log: Tuzla names are wrong...change column names
 
 
 #--------------------------------------------------------------
