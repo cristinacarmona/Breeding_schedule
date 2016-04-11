@@ -28,6 +28,7 @@
 #TUZLA (https://github.com/cristinacarmona/Breeding_schedule.git)
 #23/02/2016 1st log: Tuzla names are wrong...change column names
 
+#11/04/2016 2nd log: Re-take code for Tuzla
 
 #--------------------------------------------------------------
 
@@ -53,7 +54,7 @@ working.list <- import.list
 #Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
 #Maionames(working.list) <- c("br","bf","cap","ne","re","sex","surv")
 #Tuzla
-names(working.list) <- c("br","bf","cap","ne","re")
+names(working.list) <- c("br2","br","bf","cap1","cap","ne","re")
 
 attach(working.list)
 #detach(working.list)
@@ -77,7 +78,7 @@ se <- function(a) sd(a[!is.na(a)])/sqrt(length(a[!is.na(a)]))
 names(br)
 str(br)#CEUTA:652 obs, after corrections 653, new BirdSoc file Clemens 2013 - 683 obs
         #MAIO: 1006 obs
-        #Tuzla: 1154 obs
+        #Tuzla: 1150 obs
 names(bf)
 str(bf)#CEUTA:3238 obs, 3310 obs new file 
         #MAIO: 3006 obs
@@ -85,14 +86,14 @@ str(bf)#CEUTA:3238 obs, 3310 obs new file
 names(cap)
 str(cap)#CEUTA:2375, 2460 obs new file (up to 2013); new Luke's file: 2375
           #MAIO: 1935 obs
-          #Tuzla: 3842 obs
+          #Tuzla: 3841 obs
 #str(cap[!is.na(cap$comments_stdfile) & cap$comments_stdfile =="duplicate",])
       #MAIO: 86 duplicates
 names(sex)
 names(ne)
 str(ne)#CEUTA:659, 690 obs new file (up to 2013); new Luke's file: 659
         #MAIO: 699 obs
-        #Tuzla: 1553 obs
+        #Tuzla: 1550 obs
 names(re)
 str(re)#CEUTA:4148, 4165 obs new file; new Luke's file: 4302
         #MAIO: 5026 obs
@@ -114,24 +115,30 @@ unique(cap[nchar(cap$code)>11, "code"])
 
         #Check general format in captures and resightings:
 #ALL
-regexp1 <- "([RGLBYOWXMSsP]{2})\\.([RGLBYOWXMSsP]{2})\\|([RGLBYOWXMSsP]{2})\\.([RGLBYOWXMSsP]{2})$"
+#regexp1 <- "([RGLBYOWXMSsP]{2})\\.([RGLBYOWXMSsP]{2})\\|([RGLBYOWXMSsP]{2})\\.([RGLBYOWXMSsP]{2})$"
 #Tuzla (in Tuzla g is used instead of L)
 regexp1 <- "([RGLBYOWXMSsPg]{2})\\.([RGLBYOWXMSsgP]{2})\\|([RGLBYOWXMSsgP]{2})\\.([RGLBYOWXMSsgP]{2})$"
 ind<-grep(pattern=regexp1, cap$code)
 ind2<-grep(pattern=regexp1, re$code)
 
 cap[-ind,c("year","site","nest","code")]
-# Ceuta NEW LUkes file:
-#year site nest                  code
-# 35   2006    B    5          XX.WB|XX.RWM
-# 44   2006    B    1          XX.WX|XX.WMY
-# 59   2006    C   11          XX.YR|XX.WWM
-# 69   2006    A  104 WX.BX|BX.YM_802109760
-# 136  2006    B    5          XX.WB|XX.RWM
-# 467  2007    C    4 WX.BX|BX.YM_802109760
-# 560  2007    A  202          XX.YR|XX.WWM
-# 580  2007    A  202          XX.YR|XX.WWM
-# 1106 2008    A    1          XX.YR|XX.WWM
+# year site nest        code
+# 411  1996    C    4 XX.Mg|XX.Rb
+# 1375 1997    C  154 XX.Mg|XX.Rb
+# 1656 1998   B2   -6        <NA>
+#   1664 1998   B2   -6        <NA>
+#   1666 1998   B2   -6        <NA>
+#   1668 1998   B2   -5        <NA>
+#   1670 1998   B2   -5        <NA>
+#   2374 1999   A1   17        <NA>
+#   2380 1999   A1   21        <NA>
+#   2381 1999   A1   23        <NA>
+#   2462 1999   B1   49        <NA>
+#   2603 1999   B1  206        <NA>
+#   2604 1999   B1  208        <NA>
+#   2605 1999   B1  208        <NA>
+#   2770 1999   B3   11        <NA>
+# 3777 2004    D   15        <NA>
 
 cap[-ind,c("code")]
 #Previous file to Luke's:
@@ -145,8 +152,8 @@ re[-ind2,"code"]
 re.incomplete.codes<-re[-ind2,"code"]
 
 
-cap[nchar(cap$ring)<6,] #MAIO: those without metal from 2007 and 2012
-cap[nchar(cap$ring)>6,] #MAIO: 0
+cap[nchar(cap$ring)<6,] #Tuzla: those without metal
+cap[nchar(cap$ring)>7,] #Tuzla: 0
 #--------------fix codes & data in wrong format in captures/birdref:----------
 cap$code<-gsub(" ","",cap$code)
 cap$ring<-gsub(" ","",cap$ring)
@@ -222,38 +229,47 @@ table(cap$sex)
 # #cap[cap$code %in% "BX.MX|GX.BX ", "code"] <- "BX.MX|GX.BX"
 #-----------------------------------------------------------------
 
-  #a) find duplicates in Ceuta:
+  #a) find duplicates in Ceuta and Tuzla....omit juveniles
 rownames(cap)
-cap$code.ring <- paste(cap$code,cap$ring, sep="-")
+cap.original <- cap
+cap.adults<-cap[!cap$sex %in% "J",]
+
+cap<-cap.adults
+
+cap$code.ring <- paste(cap$code,cap$ring, sep="_")
 cap$sex.code <- paste(cap$code, cap$sex, sep="-")
 
   #a) Duplicate
-dupl <- cap[which(cap$comments_stdfile =="duplicate"),c("code","ring")]
+#dupl <- cap[which(cap$comments_stdfile =="duplicate"),c("code","ring")]
   
-#   #b) list duplicates from Ceuta
+#   #b) list duplicates from Ceuta and Tuzla
 # 
-# library(stringr)
-# unique.code.ring<- unique(cap$code.ring)
-# 
-# lookdup <-strsplit(unique.code.ring, "-")
-# library(plyr)
-# ldup <- ldply(lookdup) #turn list into two columns
-# colnames(ldup) <- c("code","ring")  
-# 
-# 
-# pat<- "XX.XX"#get rid of ambiguous codes from list of duplicates
-# pat2 <- ".XX"
-# x <- ldup[!str_detect(ldup$code, pattern=pat) 
-#           & !str_detect(ldup$code, pattern=pat2),] 
-# str(x) #CEUTA: 529; 555; 530
-# 
-# ind <- which(duplicated(x$code) | duplicated(x$code, fromLast=TRUE))
-# str(x[ind,]) #34; 38; 36
-# x1 <- x[ind,]
-# x1[order(x1$code),]
-# 
-# dupl <- x1 #List of rings with duplicated codes 
-# str(dupl) #36
+library(stringr)
+cap$code[is.na(cap$code)] <- "NA"
+
+unique.code.ring<- unique(cap$code.ring)
+
+lookdup <-strsplit(unique.code.ring, "_")
+
+library(plyr)
+ldup <- ldply(lookdup)#turn list into two columns
+
+colnames(ldup) <- c("code","ring")
+
+
+pat<- "XX.XX"#get rid of ambiguous codes from list of duplicates
+#pat2 <- ".XX"
+x <- ldup[!str_detect(ldup$code, pattern=pat),]
+      #    & !str_detect(ldup$code, pattern=pat2),]
+str(x) #CEUTA: 529; 555; 530; TUZLA: 1094
+
+ind <- which(duplicated(x$code) | duplicated(x$code, fromLast=TRUE))
+str(x[ind,]) #69 in Tuzla
+x1 <- x[ind,]
+x1[order(x1$code),]
+
+dupl <- x1 #List of rings with duplicated codes
+str(dupl) #69
 # #-------------debug duplicates-------------------
 # cap[cap$ring %in% "CA2370",]
 # cap[cap$ring %in% "CV007",]
@@ -265,10 +281,17 @@ dupl <- cap[which(cap$comments_stdfile =="duplicate"),c("code","ring")]
 #2. Omit duplicated codes and rings from birdref
 rings.br <- union(br$male, br$female)
 
-ind <- which(rings.br %in% dupl$code | rings.br %in% dupl$ring)
-omit1 <- rings.br[ind] #list of rings to omit
+ind<-which(cap$ring %in% dupl$ring )
+ringsdup.cap<-cap[ind, "ring_num"]
 
-
+ind <- which(rings.br %in% ringsdup.cap)
+omit1 <- rings.br[ind] #list of rings to omit 54
+#---------------------------- omit1:
+# [1] "83820" "83841" "83825" "83866" "24669" "83824" "25021" "4356"  "25330" "4383"  "25232" "24789"
+# [13] "24998" "27219" "25140" "32240" "32241" "4424"  "32254" "83804" "83592" "83829" "24884" "24662"
+# [25] "83810" "25022" "4363"  "25329" "25080" "4265"  "4300"  "25133" "25150" "27207" "27298" "24773"
+# [37] "4488"  "4489"  "83753" "4498"  "4499"  "24988" "32510" "32324" "32225" "4470"  "4494"  "27267"
+# [49] "27284" "27260" "27289" "27303" "27534" "344"  
 #---------------------------------------------------------------------
 #Extract appearances:
 library(stringr)
@@ -277,29 +300,35 @@ library(stringr)
 #   a.1 use omit1 to clear duplicates
 names(br)
 head(br)
-males.with.dupl <- br[!is.na(br$male) &
-                        br$male != "XX.XX|XX.XX",]
+males.with.dupl <- br[!is.na(br$male),]
+                      #&
+                        #br$male != "XX.XX|XX.XX",]
 names(males.with.dupl)
 males <- males.with.dupl[!males.with.dupl$male %in% omit1, ] 
-#Ceuta: males$sex <- "M"
-#Ceuta: males$mate_sex <- "F"
+#Ceuta & Tuzla: 
+males$sex <- "M"
+#Ceuta & Tuzla: 
+males$mate_sex <- "F"
 
 #MAIO:
-colnames(males)[c(4,5,9:14)] <- c("ring","mate_ring","field_sex_focal","mol_sex_focal","captured_focalyear_focal","field_sex_mate","mol_sex_mate","captured_focalyear_mate") #SITE CHANGE
+colnames(males)[c(9,10,20,21)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
 
 #CEUTA: (change cols to change names)
 #colnames(males)[c(10,11,19,20)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
 
 males$ring
 
-females.with.dupl <- br[!is.na(br$female) & 
-                          br$female != "XX.XX|XX.XX",] #SITE CHANGE
+females.with.dupl <- br[!is.na(br$female) ,]
+                        #& 
+                          #br$female != "XX.XX|XX.XX",] #SITE CHANGE
 females <- females.with.dupl[!females.with.dupl$female %in% omit1,]
-#Ceuta: females$sex <- "F"
-#Ceuta: females$mate_sex <-"M"
+#Ceuta & Tuzla: 
+females$sex <- "F"
+#Ceuta & Tuzla: 
+females$mate_sex <-"M"
 
 #MAIO:
-colnames(females)[c(5,4,9:14)] <- c("ring","mate_ring","field_sex_mate","mol_sex_mate","captured_focalyear_mate","field_sex_focal","mol_sex_focal","captured_focalyear_focal") #SITE CHANGE
+colnames(females)[c(10,9,20,21)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
 
 #CEUTA: (change cols to change names)
 #colnames(females)[c(11,10,19,20)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
@@ -309,8 +338,8 @@ ids.1 <- as.data.frame(rbind(males,  females))
 head(ids.1)
 tail(ids.1)
 
-pat<- "XX"#get rid of ambiguous codes from list of ids
-ids2 <- ids.1[!str_detect(ids.1$ring, pattern=pat),] 
+# pat<- "XX"#get rid of ambiguous codes from list of ids
+# ids2 <- ids.1[!str_detect(ids.1$ring, pattern=pat),] 
 
 #CEUTA:
 #ids<-ids2[ids2$year != 2013,]#restrict ids from Ceuta to 2006-2012 (omit 2013)
@@ -321,7 +350,8 @@ ids2 <- ids.1[!str_detect(ids.1$ring, pattern=pat),]
 
 #head(ids)
 str(ids.1) #MAIO: 996 obd (up to 2014), 1169 (up to 2015), 1166 (2nd run?)
-str(ids2) #MAIO: 1126
+            #Tuzla 1416
+#str(ids2) #MAIO: 1126
 #str(ids) #MAIO: 958 obs (up to 2014), 1129 (up to 2015)
           #Ceuta: 1031 obs (up to 2012)
 #table(ids$year)
@@ -333,7 +363,8 @@ str(ids2) #MAIO: 1126
         #combinations that are complete and the first
         #appearance of each combination to know ringing year
 
-ids<-ids2 #rename
+#ids<-ids2 #rename
+ids<-ids.1
 table(cap$year)
 table(ids$year)
 table(cap$sex)
@@ -342,41 +373,74 @@ table(cap$sex)
 ids$code <- NA
 
 #MAIO:
-cap.1 <- cap[cap$sex !="J",]#restrict captures to adults
+#cap.1 <- cap[cap$sex !="J",]#restrict captures to adults
 #CEUTA: cap.1 <- cap[cap$age !="J",]
+#Tuzla: cap was already restricted to only Adults
+cap.1<-cap #only adults
 
-pat<- "XX"#get rid of ambiguous codes from list of adult captures
-cap.2<-cap.1[!str_detect(cap.1$code, pattern=pat),] 
-cap.1<-cap.2
+pat<- "XX.XX"#get rid of ambiguous codes from list of adult captures
+ambiguous.adult.codes<-cap.1[str_detect(cap.1$code, pattern=pat),]
+x<-unique(ambiguous.adult.codes$code.ring)
+lookdup <-strsplit(x, "_")
+library(plyr)
+ldup <- ldply(lookdup)#turn list into two columns
+colnames(ldup) <- c("code","ring")
 
-ind<-which(nchar(ids$ring)>9) #6 in Maio (more in 2nd run), 18 in Ceuta
-ids[ind,]
+ind<-which(duplicated(ldup$code)| duplicated(ldup$code, fromLast=TRUE))
+adult.inc.nonamb<-ldup[-ind,c("code","ring")] #adults with incomplete but non-ambiguous colour codes
+#        code    ring
+# 9  XX.XX|XX.MR DH83652
+# 12 XX.gX|XX.XX      -1
+# 15 MO.XX|XX.XX DH83936
+# 22 XX.XX|MB.XX DH83822
+# 31 XX.XX|XX.MX DH85582
+# 45 GM.XX|XX.XX DJ24752
+# 46 XX.XX|gX.MX DJ25181
+# 47 XX.XX|OM.XX DJ24798
+# 53 XX.XX|MX.RX  DJ4251
+# 64 gX.MX|XX.XX DJ32239
+# 78 MX.BX|XX.XX DJ27534
 
-for(i in 1:length(ids$year)){ #if code is under ring...put it in code
-  if(nchar(ids$ring[i])>9)
-    ids$code[i] <- ids$ring[i]
-}
+#-------check if these were in omit1----
+omit1 #not in omit1 list ,/
+#-------------------------------------------
+#take letters off:
+adult.inc.nonamb$ring<-gsub("DH","",adult.inc.nonamb$ring)
+adult.inc.nonamb$ring<-gsub("DJ","",adult.inc.nonamb$ring)
+#-----------------------------------
+
+list.rings.code1<-cap.1[!str_detect(cap.1$code, pattern=pat),c("code","ring_num")] 
+colnames(list.rings.code1)[2]<-"ring"
+ls.ring.code<-rbind(list.rings.code1, adult.inc.nonamb)
+
+# ind<-which(nchar(ids$ring)>9) #6 in Maio (more in 2nd run), 18 in Ceuta
+# ids[ind,]
+
+# for(i in 1:length(ids$year)){ #if code is under ring...put it in code
+#   if(nchar(ids$ring[i])>9)
+#     ids$code[i] <- ids$ring[i]
+# }
 
 for(i in 1:length(ids$year)){ #if code is empty, search ring in capt and fill it
-  if(is.na(ids$code[i]))
-    ids$code[i] <- cap.1$code[match(ids$ring[i], cap.1$ring)]    
+    ids$code[i] <- ls.ring.code$code[match(ids$ring[i], ls.ring.code$ring)]    
 }
 
-for(i in 1:length(ids$year)){ #if ring has a code, search ring using code and replace
-  if(nchar(ids$ring[i])>9)
-    ids$ring[i] <- cap.1$ring[match(ids$code[i], cap.1$code)]
-}
+# for(i in 1:length(ids$year)){ #if ring has a code, search ring using code and replace
+#   if(nchar(ids$ring[i])>9)
+#     ids$ring[i] <- cap.1$ring[match(ids$code[i], cap.1$code)]
+# }
 
-for(i in 1:length(ids$year)){#if adult has no metal ring, use code instead of ring
-  if(nchar(ids$ring[i])>9 | is.na(ids$ring[i]))
-    if(nchar(cap.1$ring[match(ids$code[i], cap.1$code)])<11)
-      ids$ring[i] <- cap.1$code[match(ids$code[i],cap.1$code)]
-}
+# for(i in 1:length(ids$year)){#if adult has no metal ring, use code instead of ring
+#   if(nchar(ids$ring[i])>9 | is.na(ids$ring[i]))
+#     if(nchar(cap.1$ring[match(ids$code[i], cap.1$code)])<11)
+#       ids$ring[i] <- cap.1$code[match(ids$code[i],cap.1$code)]
+# }
 
 
 #-----debug ----
 head(ids)
 tail(ids)
+ids[ids$year %in% "1996" & ids$site %in% "B" & ids$nest %in% "261",]
 
 #MAIO:
 head(ids[ids$captured_focalyear_focal =="no" ,] )
@@ -410,9 +474,10 @@ ids[nchar(ids$ring)<12 & nchar(ids$ring)>8,]
 
 table(ids$code)
 unique(ids$code) #Maio: 472 unique codes, some ambiguous OX.MX|RX.??
-regexp<-"([OX]{2})\\.([MX]{2})\\|([RX]{2})\\.([A-Z]{2})$"
-cap.1[grep(cap.1$code, pat=regexp),]
-ids[grep(ids$code, pat=regexp),]
+                #Tuzla 973 unique codes (including one NA)
+# regexp<-"([OX]{2})\\.([MX]{2})\\|([RX]{2})\\.([A-Z]{2})$"
+# cap.1[grep(cap.1$code, pat=regexp),]
+# ids[grep(ids$code, pat=regexp),]
 
 #Ceuta changes:
 # which(br$female %in% "CA127") #corrected
@@ -457,38 +522,40 @@ ids[grep(ids$code, pat=regexp),]
 
 #-----Changes made in MAIO, omit from Ceuta------ 
 
-omit2<-ids[is.na(ids$code)|is.na(ids$ring),c("nest","site","code","ring","year")]
-# # nest site        code   ring year
-# # 887  bs--8    S        <NA> CA4094 2014* this was ringed as chick...but it doesn't appear in alex captures
-# # 546     -9    S OX.RX|WX.WX   <NA> 2012* wrong code...in notes appears as that
-# # 7521    32    S OX.MX|RX.??   <NA> 2013* incomplete code, not captured
-# # 8811 bs--2    S        <NA> CA2929 2014* this ring does not exist in captures made note in mistakes of Maio 04/08/2015
-
-str(omit2) #MAIO: 24 obs with missing ring or code
-cap[cap$ring %in% omit2$ring,] #all have ambiguous codes
-
-
-# #omit these for now for data extraction:
-ind <- which(ids$code %in% omit2$code[!is.na(omit2$code)]| ids$ring %in% omit2$ring[!is.na(omit2$ring)])
-ids2 <- ids[-ind,]
-str(ids2) #1102 observations
-
-# #omit negative broods of 2014 that alex found before september
-pat <- "bs-"
-ind <- which(str_detect(ids2$nest, pattern=pat))
-ids2[ind,]#there is no bs--5, but bs--4 and bs--6! bs--5 had been omitted before as no adult was known
-ids.final <- ids2[-ind,] 
-ids.final[,c("year","site","nest","code","ring")]
- 
+# omit2<-ids[is.na(ids$code)|is.na(ids$ring),c("nest","site","code","ring","year")]
+# # # nest site        code   ring year
+# # # 887  bs--8    S        <NA> CA4094 2014* this was ringed as chick...but it doesn't appear in alex captures
+# # # 546     -9    S OX.RX|WX.WX   <NA> 2012* wrong code...in notes appears as that
+# # # 7521    32    S OX.MX|RX.??   <NA> 2013* incomplete code, not captured
+# # # 8811 bs--2    S        <NA> CA2929 2014* this ring does not exist in captures made note in mistakes of Maio 04/08/2015
+# 
+# str(omit2) #MAIO: 24 obs with missing ring or code
+# cap[cap$ring %in% omit2$ring,] #all have ambiguous codes
+# 
+# 
+# # #omit these for now for data extraction:
+# ind <- which(ids$code %in% omit2$code[!is.na(omit2$code)]| ids$ring %in% omit2$ring[!is.na(omit2$ring)])
+# ids2 <- ids[-ind,]
+# str(ids2) #1102 observations
+# 
+# # #omit negative broods of 2014 that alex found before september
+# pat <- "bs-"
+# ind <- which(str_detect(ids2$nest, pattern=pat))
+# ids2[ind,]#there is no bs--5, but bs--4 and bs--6! bs--5 had been omitted before as no adult was known
+# ids.final <- ids2[-ind,] 
+# ids.final[,c("year","site","nest","code","ring")]
+#  
 
 #----------------------------01/02/2016----
-#ids.final<-ids
+ids.final<-ids
 str(ids.final) #1038 obs Ceuta; 1085 (09/02/2016, using BirdSoc);1031 (10/02/2016 up to 2012 only)
                 #1093 obs Maio
+                #1462 obs Tuzla
 table(ids.final$year) 
 ids.final$nest.id <- paste(ids.final$year, ids.final$site, ids.final$nest, sep="-")
 unique(ids.final$nest.id) #CEUTA 602; 601 (10/02/2016, using BirdSoc up to 2012)
                           #MAIO 721
+                          #Tuzla: 858
 
 
 #       a.3 Add year when metal was added and year when code was added (copied from create colour code field sheet.R)
@@ -500,18 +567,19 @@ year.cr <- aggregate(cap.1$year, by=list(cap.1$code.ring), min)
 
 #cap.1<-cap.1[order(cap.1$ring, cap.1$year, cap.1$date),]
 #year.mr <- aggregate(cap.1$year, by=list(cap.1$ring), min)
-year.mr <- aggregate(cap$year, by =list(cap$ring),min) #uses cap instead of cap.1 because cap.1 does not include juveniles, we want to know the actual year when metal ring was added
+year.mr <- aggregate(cap.original$year, by =list(cap.original$ring_num),min) #uses cap instead of cap.1 because cap.1 does not include juveniles, we want to know the actual year when metal ring was added
 
 head(year.mr)
 cap.1$year.cr <- NA
-cap$year.mr <- NA
+cap.original$year.mr <- NA
+cap.original$ring_num<-as.character(cap.original$ring_num)
 
 for(i in 1:length(cap.1$year)){
   cap.1$year.cr[i] <- year.cr$x[match(cap.1$code.ring[i], year.cr$Group.1)]
 }
 
-for(i in 1:length(cap$year)){
-  cap$year.mr[i] <- year.mr$x[match(cap$ring[i], year.mr$Group.1)]
+for(i in 1:length(cap.original$year)){
+  cap.original$year.mr[i] <- year.mr$x[match(cap.original$ring_num[i], year.mr$Group.1)]
 }
 
 
@@ -519,9 +587,10 @@ for(i in 1:length(cap$year)){
 ids.final$year.cr <- NA
 ids.final$year.mr <- NA
 
+
 for(i in 1:length(ids.final$year)){ 
     ids.final$year.cr[i] <- cap.1$year.cr[match(ids.final$code[i], cap.1$code)]
-    ids.final$year.mr[i] <- cap$year.mr[match(ids.final$ring[i], cap$ring)]
+    ids.final$year.mr[i] <- cap.original$year.mr[match(ids.final$ring[i], cap.original$ring_num)]
 }
 
 
@@ -533,13 +602,13 @@ ids.final[ids.final$year.cr!=ids.final$year.mr, c("year.cr", "year.mr","ring")]
 ids.final[ids.final$year.cr<ids.final$year.mr,]#CEUTA None ,/, colour rings should have been added after metal ring...unless CR changed (duplicates, omitted from this dataset)
                                               #MAIO None
 
-ids.final[is.na(ids.final$year.cr),] #CEUTA: none, Maio: none
-ids.final[is.na(ids.final$year.mr),] #Ceuta: 1 (BX.WX|BX.OX); MAIO: none
+str(ids.final[is.na(ids.final$year.cr),]) #CEUTA: none, Maio: none; Tuzla 44...adults with no colour code
+head(ids.final[is.na(ids.final$year.mr),]) #Ceuta: 1 (BX.WX|BX.OX); MAIO: none, Tuzla: 2 (rings: 21820, 85960....inexistent rings)
 ids.final[ids.final$ring == ids.final$code,]
 
 #CEUTA ids.final$year.mr[ids.final$ring == ids.final$code]<-NA
 
-head(cap[!cap$age %in% "J",c("year.mr","sex","ring")])
+head(cap.original[!cap.original$sex %in% "J",c("year.mr","sex","ring")])
 cap[cap$ring %in% "CA3801",]
 cap.1[cap.1$ring %in% "CA3801",]
 cap[cap$ring %in% "CA3801",]
@@ -610,12 +679,12 @@ cap[cap$ring %in% "CA3801",]
 #prepare resightings file:
 re$date
 re[is.na(re$date),]
-re[re$date<900,c("observer","year","date")] #there are resightings 
+#re[re$date<900,c("observer","year","date")] #there are resightings 
 
 #MAIO: in non-breeding seasons of 2009 and 2008, restrict dataset:
-re2<-re[re$date>=800,]
+#re2<-re[re$date>=800,]
+re2<-re
 re<-re2
-
 
 re$real.date <- as.Date(ISOdate(re$year,re$date%/%100,re$date%%100), "%Y/%m/%d", tz="GMT")
 re[is.na(re$real.date),] 
@@ -659,9 +728,10 @@ group.res<-re[ind,]
 
 #         ii. Captures
 #prepare file:
-cap$date
+cap.o<-cap.original
+cap.original$date
 
-cap$real.date <- as.Date(ISOdate(cap$year,cap$date%/%100,cap$date%%100), "%Y/%m/%d", tz="GMT")
+cap.o$real.date <- as.Date(ISOdate(cap.o$year,cap.o$date%/%100,cap.o$date%%100), "%Y/%m/%d", tz="GMT")
 head(cap)
 
 names(re)
@@ -670,8 +740,8 @@ names(re)
 #---------------------------
 
 ids.final$ring
-cap$year.code <- paste(cap$year, cap$code, sep="-")
-cap$year.ring <- paste(cap$year, cap$ring, sep="-")
+cap.o$year.code <- paste(cap.o$year, cap.o$code, sep="-")
+cap.o$year.ring <- paste(cap.o$year, cap.o$ring_num, sep="-")
 ids.final$year.ring <- paste(ids.final$year, ids.final$ring, sep="-")
 
 ids.final$first.cap <- NA
@@ -694,8 +764,8 @@ ids.final$last.cap <- NA
 
 for(i in 1:length(ids.final$year)){ 
   #ind <- grep(ids.final$year.ring[i], cap$year.ring, fixed=TRUE) #corrected bug
-  ind <- which(ids.final$year.ring[i]==cap$year.ring)
-  group.cap<-cap[ind,]
+  ind <- which(ids.final$year.ring[i]==cap.o$year.ring)
+  group.cap<-cap.o[ind,]
   
   if(length(group.cap$year)>0){
     ids.final$first.cap[i] <- as.character(min(group.cap$real.date, na.rm=T))
@@ -716,6 +786,7 @@ ids.final$last.cap.r <- as.Date(ids.final$last.cap)
 str(ids.final[ids.final$first.cap!=ids.final$last.cap,])
   #74 adults were captured more than once in a year MAIO
   #397 adults were captured more than once CEUTA
+  #397 adults were captured more than once in Tuzla
 head(ids.final[ids.final$first.cap!=ids.final$last.cap,])
 #---------------------
 
@@ -728,7 +799,7 @@ names(ne)
 names(ids.final)
 
 ne$nest.id <- paste(ne$year, ne$site, ne$nest, sep="-")
-
+#*****************************generate nes_std file for Tuzla
 for(i in 1:length(ids.final$year)){ 
   ids.final$laying_date[i] <- ne$laying_date[match(ids.final$nest.id[i], ne$nest.id)]
   ids.final$found_date[i] <- ne$found_date[match(ids.final$nest.id[i], ne$nest.id)]
