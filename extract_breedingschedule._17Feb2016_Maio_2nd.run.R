@@ -29,6 +29,7 @@
 #23/02/2016 1st log: Tuzla names are wrong...change column names
 
 #11/04/2016 2nd log: Re-take code for Tuzla, up to brood fates (fixing brood fates parents categories)
+#12/04/2016 3rd log: up to line 1449,
 
 #--------------------------------------------------------------
 
@@ -54,7 +55,7 @@ working.list <- import.list
 #Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
 #Maionames(working.list) <- c("br","bf","cap","ne","re","sex","surv")
 #Tuzla
-names(working.list) <- c("br","br2","bf","cap1","cap","ne2","ne","re","hatch")
+names(working.list) <- c("br","br2","br3","bf","cap1","cap","ne2","ne","re","hatch") #USE BirdRef_Tuzla_workingfile_April2016_CCI.csv
 
 attach(working.list)
 #detach(working.list)
@@ -311,7 +312,7 @@ males$sex <- "M"
 males$mate_sex <- "F"
 
 #MAIO:
-colnames(males)[c(9,10,20,21)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
+colnames(males)[c(10,11,21,22)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
 
 #CEUTA: (change cols to change names)
 #colnames(males)[c(10,11,19,20)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
@@ -328,7 +329,7 @@ females$sex <- "F"
 females$mate_sex <-"M"
 
 #MAIO:
-colnames(females)[c(10,9,20,21)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
+colnames(females)[c(11,10,21,22)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
 
 #CEUTA: (change cols to change names)
 #colnames(females)[c(11,10,19,20)] <- c("ring","mate_ring","field_sex_focal","field_sex_mate") #SITE CHANGE
@@ -857,25 +858,27 @@ bf$real.date <- as.Date(ISOdate(bf$year,bf$date%/%100,bf$date%%100), "%Y/%m/%d",
             #check parents categories (4- both, 3-only male, 2-only female)          
               table(bf$parents)
 #Maio
-              bf[bf$parents %in% "4 (?)",]
-              bf[c(206,136),]
-              bf[bf$parents %in%"2 (3)",]
-              bf[bf$parents=="F",]
-              bf[bf$parents %in% "4?",]
-              bf[bf$parents %in% "?",] 
-              bf[bf$parents %in% "#N/A",] 
+              bf[bf$parents %in% "4 (?)",] #change to 4
+            
+              bf[bf$parents %in%"2 (3)",]#change to 4
+              bf[bf$parents %in% "2+3",] #change to 4
+              bf[bf$parents %in% "NF",]
+              bf[bf$parents %in% "?",] #change to 4
+              #bf[bf$parents %in% "#N/A",] 
               bf[bf$parents %in% "-1",]
-#changes to Maio:             
-              bf$parents[bf$parents=="no parent"] <- 0
-              bf$parents[bf$parents=="?"] <- NA 
-              bf$parents[bf$parents=="#N/A"] <- NA
-              bf$parents[bf$parents =="F"] <- 2
-              bf$parents[bf$parents == "4?"] <- NA 
-              bf$parents[bf$parents =="-1"] <- NA
-              bf$parents[bf$parents == "2 or 3"] <- NA
-              bf$parents[bf$parents == "2 OR 3"] <- NA
-              bf$parents[bf$parents == "2 OR 4"] <- NA
-              bf$parents[bf$parents == "3?"] <- NA
+#changes to Maio: 
+bf[bf$nest.id %in% "1998-C1-9",]
+
+bf$parents[bf$parents %in% "4 (?)"] <- 4#change to 4
+bf$parents[bf$parents %in%"2 (3)"] <- 4#change to 4
+bf$parents[bf$parents %in% "2+3"] <- 4 #change to 4
+#               bf$parents[bf$parents %in%"?"] <- 4
+#               bf$parents[bf$parents == "4?"] <- NA 
+#               bf$parents[bf$parents =="-1"] <- NA
+#               bf$parents[bf$parents == "2 or 3"] <- NA
+#               bf$parents[bf$parents == "2 OR 3"] <- NA
+#               bf$parents[bf$parents == "2 OR 4"] <- NA
+#               bf$parents[bf$parents == "3?"] <- NA
 #
 #Ceuta
 #               bf$parents[bf$parents %in% "?"] <- NA
@@ -889,25 +892,48 @@ bf$real.date <- as.Date(ISOdate(bf$year,bf$date%/%100,bf$date%%100), "%Y/%m/%d",
 # ids.final$mol_sex <- as.character(ids.final$mol_sex)
 # ids.final$field_sex <- as.character(ids.final$field_sex)
 # 
-sex.check<-ids.final[ids.final$mol_sex_focal %in% "F" & ids.final$field_sex_focal %in% "M",]
-sex.check2<-ids.final[ids.final$mol_sex_focal %in% "M" & ids.final$field_sex_focal %in% "F",]
-# 
-# cap[cap$ring %in% sex.check$ring,]
-# cap[cap$ring %in% sex.check2$ring,]
-# 
-sex[sex$ring %in% sex.check$ring,] #CA3037 inconsistent mol sex from sex file and mol_sex column!
-# sex[sex$ring %in% sex.check2$ring,]
-# unique(sex.check$ring)
-# 
-br[br$male %in% sex.check$ring,]
-# br[br$male %in% sex.check2$ring,]
-# 
-# ids.final[ids.final$nest.id %in% "2006-D-1", c("northing","easting")]
+# sex.check<-ids.final[ids.final$mol_sex_focal %in% "F" & ids.final$field_sex_focal %in% "M",]
+# sex.check2<-ids.final[ids.final$mol_sex_focal %in% "M" & ids.final$field_sex_focal %in% "F",]
+# # 
+# # cap[cap$ring %in% sex.check$ring,]
+# # cap[cap$ring %in% sex.check2$ring,]
+# # 
+# sex[sex$ring %in% sex.check$ring,] #CA3037 inconsistent mol sex from sex file and mol_sex column!
+# # sex[sex$ring %in% sex.check2$ring,]
+# # unique(sex.check$ring)
+# # 
+# br[br$male %in% sex.check$ring,]
+# # br[br$male %in% sex.check2$ring,]
+# # 
+# # ids.final[ids.final$nest.id %in% "2006-D-1", c("northing","easting")]
 # ids.final[, c("northing","easting")]
 # #10/08/2015 found inconsistent mol_sex in CA3037...bug in BirdRef Cleaning code
 # #corrected BirdRef std file ,/
 #----------------------------------------
+#------------Check if sex in Tuzla bird ref coincides with sex in captures------
 
+br.ring.sex<-paste(ids.final$ring, ids.final$field_sex_focal, sep="-")
+cap.ring.sex<-paste(cap.o$ring_num[!cap.o$sex %in% "J"], cap.o$sex[!cap.o$sex %in% "J"], sep="-")              
+
+br.ring.sex<-unique(br.ring.sex) #1016
+cap.ring.sex<-unique(cap.ring.sex) #1129             
+
+#corrected wrong sexes directly in files
+setdiff(br.ring.sex, cap.ring.sex)#9, 2 after correcting errors (1] "85960-M" "21820-M")
+#[1] "85960-M" "21820-M" "27234-M" "319-M"   "27384-M" "24933-F" "4492-F"  "27362-F" "270-F"
+
+setdiff(cap.ring.sex, br.ring.sex)#121, 116 after correcting some errors, 81 after adding missing nests from captures, most of these are duplicates
+# [1] "83804-F" (dup) "83824-M"(dup)"83820-M" "83841-M" "83825-M" "NA-M"    "83592-F" "83810-F" "83829-F" "83866-M" "24884-F"
+# [12] "24669-M" "24662-F" "25022-F" "25021-M" "4363-F"  "4356-M"  "25329-F" "25330-M" "4290-F"  "4383-M"  "25232-M"
+# [23] "24789-M" "25080-F" "24998-M" "4265-F"  "4300-F"  "27219-M" "25133-F" "25140-M" "25150-F" "27207-F" "32207-F"
+# [34] "32209-M" "32205-M" "32206-F" "32204-M" "32213-F" "32217-F" "32220-M" "32214-F" "32219-F" "32215-F" "32216-M"
+# [45] "32218-M" "32203-F" "32211-F" "32212-F" "27298-F" "24773-F" "32240-M" "32222-F" "32221-M" "4488-F"  "4489-F" 
+# [56] "83753-F" "4498-F"  "4499-F"  "24988-F" "32241-M" "32510-F" "4424-M"  "32324-F" "32230-M" "32225-F" "32229-F"
+# [67] "32231-F" "32234-F" "32232-F" "32236-F" "32239-M" "32238-F" "4470-F"  "4494-F"  "32228-F" "32227-F" "27267-F"
+# [78] "27284-F" "4397-M"  "27260-F" "27289-F" "27303-F" "32254-M" "27548-F" "32295-F" "27537-F" "27533-M" "27534-F"
+# [89] "27527-M" "27539-M" "27540-F" "24289-M" "344-F"  
+
+#-----------------------------------------------
 # identify if male, female or both parents were seen and min max dates
 #22/01/2016 this part was modified as it was based on mol_sex,
 #           but it should be based on field_sex as observers considered the colour rings 
@@ -1089,16 +1115,17 @@ str(bf[ind,c("parents","chicks","nest.id","date")]) #715 with repeated dates
 
 bf1<-bf
 table(bf1$chicks)
-#bf1$chicks[bf1$chicks %in% "0+"]<- 0
-#bf1$chicks[bf1$chicks %in% "+"]<- 0
-#bf$chicks[bf$chicks %in% "+1"] <- 1
-bf1$chicks[bf1$chicks %in% "1+"] <- 1
+bf1$chicks[bf1$chicks %in% "0+"]<- 0
+bf1$chicks[bf1$chicks %in% "-1"]<-0
+bf1$chicks[bf1$chicks %in% "?"]<- 0
+bf$chicks[bf$chicks %in% c("0+1","1(0)","1.5","1+","1+1")] <- 1
+#bf1$chicks[bf1$chicks %in% "1+"] <- 1
 
-bf1$chicks[bf1$chicks %in% "2+"] <- 2
+bf1$chicks[bf1$chicks %in% c("2+","2.5","2+1","2+2")] <- 2
 #bf$chicks[bf$chicks %in% "+2"] <- 2
 
-#bf1$chicks[bf1$chicks %in% "3+" | bf1$chicks %in% "3+1"] <- 3
-#bf1$chicks[bf1$chicks %in% "4+"] <- 4
+bf1$chicks[bf1$chicks %in% c("3+","3+1")] <- 3
+bf1$chicks[bf1$chicks %in% "4+"] <- 4
 
 head(bf1)
 
