@@ -55,7 +55,7 @@ working.list <- import.list
 #Ceuta: names(working.list) <- c("br1","br2","br","bf","cap1","cap","ne1","ne","re1","re","sex")
 #Maionames(working.list) <- c("br","bf","cap","ne","re","sex","surv")
 #Tuzla
-names(working.list) <- c("br","br2","br3","bf","cap1","cap","ne2","ne","re","hatch") #USE BirdRef_Tuzla_workingfile_April2016_CCI.csv
+names(working.list) <- c("br","br2","br3","bf","cap1","cap","ne3","ne2","ne","re","hatch") #USE BirdRef_Tuzla_workingfile_April2016_CCI.csv
 
 attach(working.list)
 #detach(working.list)
@@ -1076,6 +1076,7 @@ str(ids.final[!is.na(ids.final$first.bf),]) #MAIO: 523 non NAs, 428 NAs (up to 2
 
 tail(ids.final)
 head(ids.final)
+table(ids.final$fate)
 ind1<-sample(rownames(ids.final[ids.final$fate %in% "HATCH",]), 5)
 ids.final[ind1,]
 # 
@@ -1087,7 +1088,8 @@ ids.final[ind1,]
 # group.bf<-bf[ind2,]
 # 
 # #---------2nd debug CEUTA 05/02/2016 ----
-# ids.final[!is.na(ids.final$first.bf.adult) & ids.final$total.brood.res >0,c("nest.id","times.adult.not.seen", "total.brood.res")]
+names(ids.final)
+ids.final[!is.na(ids.final$first.bf.adult) & ids.final$total.brood.res >0 & ids.final$times.adult.not.seen>0,c("nest.id","field_sex_focal","times.adult.not.seen", "total.brood.res","last.bf.adult.before.desertion","datenot.seen.after.desertion")]
 # ids.final[is.na(ids.final$times.adult.not.seen)& ids.final$total.brood.res>0, c("nest.id","times.adult.not.seen", "total.brood.res")]
 # ids.final[1002,]
 # bf[bf$nest.id %in% "2011-E-1",]
@@ -1132,9 +1134,12 @@ head(bf1)
 ids.final$chicks.alive.last <- NA
 ids.final$chicks.not.seen.bf <- NA
 
+i<-1124
+
 for(i in 1:length(ids.final$year)){ 
   #ind <- grep(ids.final$nest.id[i], bf$nest.id, fixed=TRUE) #corrected bug
   print(i)
+  options(warn=1)
   ind <- which(ids.final$nest.id[i] == bf1$nest.id)
   group.bf<-bf1[ind,]
   group.bf<-group.bf[order(group.bf$date),]
@@ -1148,7 +1153,7 @@ for(i in 1:length(ids.final$year)){
   if(length(chicks.bf$date)>0 & length(group.bf$date)>length(chicks.bf$date)){
     ind2 <- which(group.bf$date == max(chicks.bf$date, na.rm=T))
     ind3<-ind2+1
-    ids.final$chicks.not.seen.bf[i] <- group.bf$date[ind3]
+    ids.final$chicks.not.seen.bf[i] <- ifelse(length(ind3)>1, max(group.bf$date[ind3]),group.bf$date[ind3])
     }else{
       ids.final$chicks.not.seen.bf[i]<-NA
     }
@@ -1165,7 +1170,7 @@ str(bf[bf$chicks !="#N/A",]) #2249 not NAs
 head(ids.final)
 tail(ids.final)
 ind<-sample(rownames(ids.final[ids.final$fate %in% "HATCH",]),5) #Maio: checked 5 at random and they were ok
-ids.final[ind,]
+ids.final[i,]
 
 
 ids.final[ids.final$nest.id =="2007-A-122",]
@@ -1255,7 +1260,7 @@ head(ids.final.1)
 
 #Ceuta:cols<- c(45,46,47,50,51,52,53,54,55) #choose columns to convert to real dates
 #Maio:
-cols<-c(40,41,42,45,46,47,48,49,50)
+cols<-c(44,45,46,49,50,51,52,53,54)
 
 ids.final.1[,cols]<-apply(ids.final.1[,cols], 2, function(x) as.numeric(as.character(x)))
 
@@ -1264,13 +1269,21 @@ head(ids.final.1)
 head(ids.final)
 
 ids.final.1$first.bf.adult.r <- as.Date(ISOdate(ids.final.1$year,ids.final.1$first.bf.adult%/%100,ids.final.1$first.bf.adult%%100), "%Y/%m/%d", tz="GMT")
+
 ids.final.1$last.bf.adult.r <- as.Date(ISOdate(ids.final.1$year,ids.final.1$last.bf.adult%/%100,ids.final.1$last.bf.adult%%100), "%Y/%m/%d", tz="GMT")
+
 ids.final.1$adult.not.seen.bf.r <- as.Date(ISOdate(ids.final.1$year,ids.final.1$adult.not.seen.bf%/%100,ids.final.1$adult.not.seen.bf%%100), "%Y/%m/%d", tz="GMT")
+
 ids.final.1$last.bf.adult.before.desertion.r <- as.Date(ISOdate(ids.final.1$year,ids.final.1$last.bf.adult.before.desertion%/%100,ids.final.1$last.bf.adult.before.desertion%%100), "%Y/%m/%d", tz="GMT")
+
 ids.final.1$datenot.seen.after.desertion.r <- as.Date(ISOdate(ids.final.1$year,ids.final.1$datenot.seen.after.desertion%/%100,ids.final.1$datenot.seen.after.desertion%%100), "%Y/%m/%d", tz="GMT")
+
 ids.final.1$first.bf.r <- as.Date(ISOdate(ids.final.1$year,ids.final.1$first.bf%/%100,ids.final.1$first.bf%%100), "%Y/%m/%d", tz="GMT")
+
 ids.final.1$last.bf.r <- as.Date(ISOdate(ids.final.1$year,ids.final.1$last.bf%/%100,ids.final.1$last.bf%%100), "%Y/%m/%d", tz="GMT")
+
 ids.final.1$chicks.alive.last.r <- as.Date(ISOdate(ids.final.1$year,ids.final.1$chicks.alive.last%/%100,ids.final.1$chicks.alive.last%%100), "%Y/%m/%d", tz="GMT")
+
 ids.final.1$chicks.not.seen.bf.r <- as.Date(ISOdate(ids.final.1$year,ids.final.1$chicks.not.seen.bf %/%100,ids.final.1$chicks.not.seen.bf %%100), "%Y/%m/%d", tz="GMT")
 # ids.final$first.bf.r <- as.character(ids.final$first.bf.r)
 # ids.final$last.bf.r <- as.character(ids.final$last.bf.r)
@@ -1292,46 +1305,46 @@ ids.final<-ids.final.1
 #----------------------------------------------------------------
 
 #-------------debug------------
-str(ids.final[ids.final$year.cr == ids.final$year,]) #MAIO:530 all of these were colour ringed in the focal year
-                                                      #CEUTA: 570
-str(ids.final[ids.final$year.cr != ids.final$year,]) #MAIO: 620 not ringed in focal year
-                                                      #CEUTA: 477
-
-names(ids.final)
-str(ids.final)
-table(ids.final$fate)
-ids.final$laying_date.r <- as.Date(ids.final$laying_date.r)
-ids.final$end_date.r <- as.Date(ids.final$end_date.r)
-
-table(ids.final$laying_date.r + 25 - ids.final$hatching_date.r)
-mean(ids.final$laying_date.r + 25 - ids.final$hatching_date.r, na.rm=T)#CEUTA: 0.74
-se(ids.final$laying_date.r + 25 - ids.final$hatching_date.r)#CEUTA: 0.19
-
-ind<-which(ids.final$laying_date.r+25-ids.final$hatching_date.r< -10)
-ind<-which(ids.final$laying_date.r+25-ids.final$end_date.r< -10)
-ind<-which(ids.final$laying_date.r+25-ids.final$hatching_date.r>10) #non of these nests hatched
-x<-ids.final[ind,]
-x[x$fate %in% "HATCH", "nest.id"] #MAIO: "2010-S-108" "2010-S-108"
-                                  #CEUTA: "2012-C-101" "2012-D-1"   "2012-D-4"   "2012-D-5"   "2012-D-6"   "2012-D-101" "2012-G-1"   "2012-G-6"   "2012-G-9"  
-#                                         "2012-B-101" "2012-C-101" "2012-D-1"   "2012-D-4"   "2012-D-5"   "2012-G-4"   "2012-G-6"   "2012-G-12" 
-
-
-
-#MAIO's potential errors found 12/08/2015:
-# 2010-S-108 ,/ **corrected see below (only for this study, comment was added in comments_stdfile)   
-# 2012-S-211 ,/ **corrected 
-# 2013-S-206 ,/ **corrected
-#"2010-S-55" ,/ no mistake 
-#"2013-M-1"  ,/ no mistake 
-#"2013-R-228" ,/ no mistake but LD should be earlier
-#"2014-S-11" ,/ no mistake but LD should be earlier
-
-#****MAIO: change for this study LD of 2010-S-108:
-#ne[ne$nest.id=="2010-S-108",]#* laying date is wrong, nest was found on 918 with 1 egg, on 921 2 eggs were floated and on 930 3 eggs were found..
-# #use 1016 - 25 as Laying date = 921
+# str(ids.final[ids.final$year.cr == ids.final$year,]) #MAIO:530 all of these were colour ringed in the focal year
+#                                                       #CEUTA: 570
+# str(ids.final[ids.final$year.cr != ids.final$year,]) #MAIO: 620 not ringed in focal year
+#                                                       #CEUTA: 477
 # 
- ids.final[ids.final$nest.id=="2010-S-108", "laying_date.r" ] <- "2010-09-21" 
- ids.final[ids.final$nest.id=="2010-S-108",]
+# names(ids.final)
+# str(ids.final)
+# table(ids.final$fate)
+# ids.final$laying_date.r <- as.Date(ids.final$laying_date.r)
+# ids.final$end_date.r <- as.Date(ids.final$end_date.r)
+# 
+# table(ids.final$laying_date.r + 25 - ids.final$hatching_date.r)
+# mean(ids.final$laying_date.r + 25 - ids.final$hatching_date.r, na.rm=T)#CEUTA: 0.74
+# se(ids.final$laying_date.r + 25 - ids.final$hatching_date.r)#CEUTA: 0.19
+# 
+# ind<-which(ids.final$laying_date.r+25-ids.final$hatching_date.r< -10)
+# ind<-which(ids.final$laying_date.r+25-ids.final$end_date.r< -10)
+# ind<-which(ids.final$laying_date.r+25-ids.final$hatching_date.r>10) #non of these nests hatched
+# x<-ids.final[ind,]
+# x[x$fate %in% "HATCH", "nest.id"] #MAIO: "2010-S-108" "2010-S-108"
+#                                   #CEUTA: "2012-C-101" "2012-D-1"   "2012-D-4"   "2012-D-5"   "2012-D-6"   "2012-D-101" "2012-G-1"   "2012-G-6"   "2012-G-9"  
+# #                                         "2012-B-101" "2012-C-101" "2012-D-1"   "2012-D-4"   "2012-D-5"   "2012-G-4"   "2012-G-6"   "2012-G-12" 
+# 
+# 
+# 
+# #MAIO's potential errors found 12/08/2015:
+# # 2010-S-108 ,/ **corrected see below (only for this study, comment was added in comments_stdfile)   
+# # 2012-S-211 ,/ **corrected 
+# # 2013-S-206 ,/ **corrected
+# #"2010-S-55" ,/ no mistake 
+# #"2013-M-1"  ,/ no mistake 
+# #"2013-R-228" ,/ no mistake but LD should be earlier
+# #"2014-S-11" ,/ no mistake but LD should be earlier
+# 
+# #****MAIO: change for this study LD of 2010-S-108:
+# #ne[ne$nest.id=="2010-S-108",]#* laying date is wrong, nest was found on 918 with 1 egg, on 921 2 eggs were floated and on 930 3 eggs were found..
+# # #use 1016 - 25 as Laying date = 921
+# # 
+#  ids.final[ids.final$nest.id=="2010-S-108", "laying_date.r" ] <- "2010-09-21" 
+#  ids.final[ids.final$nest.id=="2010-S-108",]
 
 
 #----------------------------------------------------------------
@@ -1354,9 +1367,10 @@ x[x$fate %in% "HATCH", "nest.id"] #MAIO: "2010-S-108" "2010-S-108"
 #in these cases, nests need to be omitted
 
 names(cap)
+table(cap$sex)
 names(ids.final)
 
-cap$nest.id <- paste(cap$year, cap$site, cap$nest, sep="-")
+cap.o$nest.id <- paste(cap.o$year, cap.o$site, cap.o$nest, sep="-")
 
 #-----------------------
 #omit chicks with no metal ring
@@ -1380,9 +1394,16 @@ ids.final1<- ids.final
 
 #-------------------------
 #Ceuta
-ids.final1$chick1
-ind<-which(!is.na(ids.final1$chick1) & nchar(ids.final1$chick1) %in% c(6,5,9))
-ind<-which(!nchar(ids.final1$chick1) %in% c(6,5,9))
+# ids.final1$chick1
+# ind<-which(!is.na(ids.final1$chick1) & nchar(ids.final1$chick1) %in% c(6,5,9))
+# ind<-which(!nchar(ids.final1$chick1) %in% c(6,5,9))
+
+#-------------------------
+#-------------------------
+#Tuzla, all chicks have same number format, did not omit any nests
+#-------------------------
+#-------------------------
+
 
 ids.final[-ind,c("chick1","chick2","chick3")]
 ids.final[,c("chick1","chick2","chick3")]
@@ -1390,10 +1411,10 @@ nchar(ids.final$chick1[280]) #nchar of NA = 2
 
 #DOES NOT WORK FOR CEUTA to restrict rings to 6 characters as there are rings with different formats
 #MAIO:
-nests.incomplete.codes<-ids.final[!is.na(ids.final$chick1) & nchar(ids.final$chick1) != 6 | 
-                                    !is.na(ids.final$chick2) &nchar(ids.final$chick2) !=6 | 
-                                    !is.na(ids.final$chick3) & nchar(ids.final$chick3) !=6, "nest.id"]
-                                    #23 nests in Maio
+# nests.incomplete.codes<-ids.final[!is.na(ids.final$chick1) & nchar(ids.final$chick1) != 6 | 
+#                                     !is.na(ids.final$chick2) &nchar(ids.final$chick2) !=6 | 
+#                                     !is.na(ids.final$chick3) & nchar(ids.final$chick3) !=6, "nest.id"]
+#                                     #23 nests in Maio
 #Ceuta:
 # nests.complete.codes<-ids.final[nchar(ids.final$chick1) %in% c(6,5,9) |
 #                                     nchar(ids.final$chick2) %in% c(5,6,9) |
@@ -1462,13 +1483,15 @@ ids.final[ids.final$chick1 %in% "CA2038",]
 # 2012-S-221 *nest was deleted from birdref as it does not exist
 
 #list of nests to omit in Maio: 
-omit.2 <- c("2010-S-84","2010-S--114","2010-S--116","2010-S--21", "2010-S-307", "2010-S-326","2010-S-39","2010-S-9","2010-S-335", "2010-S-305","2010-S-306" )
-ids.final1[ids.final1$nest.id%in% omit.2,]
-ids.final1<-ids.final1[!ids.final1$nest.id %in% omit.2,]
+# omit.2 <- c("2010-S-84","2010-S--114","2010-S--116","2010-S--21", "2010-S-307", "2010-S-326","2010-S-39","2010-S-9","2010-S-335", "2010-S-305","2010-S-306" )
+# ids.final1[ids.final1$nest.id%in% omit.2,]
+# ids.final1<-ids.final1[!ids.final1$nest.id %in% omit.2,]
+
+
 
 #-----re-name------------------
-cap1<-cap #rename so undo can be made by using #cap<-cap1
-cap<-cap1
+cap1<-cap.o #rename so undo can be made by using #cap<-cap1
+cap.o<-cap1
 #--------------------
 #-------not needed: Maio---------
 #NOT NEEDED MAIO: omit second capture of CA2734 and CA3461 in captures file (see debbuging) 
@@ -1478,11 +1501,11 @@ cap<-cap1
 #----------------------
 
  #chicks with no metal ring will need extra step:
-cap[is.na(cap$ring) & !is.na(cap$code),]
+cap.o[is.na(cap.o$ring) & !is.na(cap.o$code),] #Non in Tuzla
 
-cap$ring2 <- ifelse(is.na(cap$ring) & !is.na(cap$code), cap$code, NA)
-cap$ring <- ifelse(!is.na(cap$ring2), cap$ring2, cap$ring) #replace NA of chicks without metal ring with code
-cap$year.ring <- paste(cap$year, cap$ring, sep="-")
+# cap$ring2 <- ifelse(is.na(cap$ring) & !is.na(cap$code), cap$code, NA)
+# cap$ring <- ifelse(!is.na(cap$ring2), cap$ring2, cap$ring) #replace NA of chicks without metal ring with code
+cap.o$year.ring <- paste(cap.o$year, cap.o$ring_num, sep="-")
 ids.final1$year.chick1 <- paste(ids.final1$year, ids.final1$chick1, sep="-")
 ids.final1$year.chick2 <- paste(ids.final1$year, ids.final1$chick2, sep="-")
 ids.final1$year.chick3 <- paste(ids.final1$year, ids.final1$chick3, sep="-")
@@ -1506,10 +1529,11 @@ ids.final1$chick3.weight<-NA
 #-------------------
 
 str(cap)
+i<-1
 
 for(i in 1:length(ids.final1$year)){ 
   #for(i in 1:95){ 
-  population<-"MAIO"
+  population<-"Tuzla"
   print(i) #print out iterations to know when it stops because of an error
   options(warn=1) #show in which iteration the error comes out
 
@@ -1532,14 +1556,14 @@ for(i in 1:length(ids.final1$year)){
   
   #Ceuta: ###ALSO used for Maio 2nd run 17/02/2016
   if(!is.na(chicks.ids$chick1)){
-    ind<-which(chicks.ids.year$year.chick1 == cap$year.ring)
-    chicks.cap<-cap[ind,]
+    ind<-which(chicks.ids.year$year.chick1 == cap.o$year.ring)
+    chicks.cap<-cap.o[ind,]
     #check whether nest.id from captures is matching nest.id from ids.final
       if(population %in% "MAIO" & any(ids.final1$nest.id[i]!=chicks.cap$nest.id) & length(unique(chicks.cap$nest.id))!=1){
              ind3<-which(ids.final1$nest.id[i]==chicks.cap$nest.id)
              chicks.cap<-chicks.cap[ind3,]
              }else{
-               chicks.cap<-cap[ind,]
+               chicks.cap<-cap.o[ind,]
              }
              
     #Ceuta and Maio:
@@ -1548,18 +1572,18 @@ for(i in 1:length(ids.final1$year)){
   chick1.measures<-chick1.measures[chick1.measures$date == min(chick1.measures$date),]#if there are recaptures use only first one
     if(length(chick1.measures$year)==1){
       ids.final1$chick1.capdate[i] <- as.character(chick1.measures$real.date)
-      ids.final1$chick1.bill[i] <- chick1.measures$bill
+      #ids.final1$chick1.bill[i] <- chick1.measures$bill #no bill measurements in Tuzla
       ids.final1$chick1.tarsus [i] <- ifelse(!is.na(chick1.measures$right_tarsus), chick1.measures$right_tarsus, chick1.measures$left_tarsus)
       ids.final1$chick1.weight [i] <- chick1.measures$weight
     }else{
       ids.final1$chick1.capdate[i] <- as.character(chick1.measures$real.date[1])
-      ids.final1$chick1.bill[i] <- chick1.measures$bill[1]
+      #ids.final1$chick1.bill[i] <- chick1.measures$bill[1]
       ids.final1$chick1.tarsus [i] <- ifelse(!is.na(chick1.measures$right_tarsus[1]), chick1.measures$right_tarsus[1], chick1.measures$left_tarsus[1])
       ids.final1$chick1.weight [i] <- chick1.measures$weight[1]
     }
   } else {
   ids.final1$chick1.capdate[i] <- NA
-  ids.final1$chick1.bill[i] <- NA
+  #ids.final1$chick1.bill[i] <- NA
   ids.final1$chick1.tarsus [i] <- NA
   ids.final1$chick1.weight [i] <- NA 
   }
@@ -1570,13 +1594,13 @@ for(i in 1:length(ids.final1$year)){
   
   #Ceuta:
   if(!is.na(chicks.ids$chick2)){
-    ind<-which(chicks.ids.year$year.chick2 == cap$year.ring)
-    chicks.cap<-cap[ind,]
+    ind<-which(chicks.ids.year$year.chick2 == cap.o$year.ring)
+    chicks.cap<-cap.o[ind,]
     if(population %in% "MAIO" & any(ids.final1$nest.id[i]!=chicks.cap$nest.id) & length(unique(chicks.cap$nest.id))!=1){
       ind3<-which(ids.final1$nest.id[i]==chicks.cap$nest.id)
       chicks.cap<-chicks.cap[ind3,]
     }else{
-      chicks.cap<-cap[ind,]
+      chicks.cap<-cap.o[ind,]
     }
 
   #Ceuta and Maio
@@ -1587,18 +1611,18 @@ for(i in 1:length(ids.final1$year)){
   
       if(length(chick2.measures$year)==1){
         ids.final1$chick2.capdate[i] <- as.character(chick2.measures$real.date)
-        ids.final1$chick2.bill[i] <- chick2.measures$bill
+        #ids.final1$chick2.bill[i] <- chick2.measures$bill
         ids.final1$chick2.tarsus [i] <- ifelse(!is.na(chick2.measures$right_tarsus), chick2.measures$right_tarsus, chick2.measures$left_tarsus)
         ids.final1$chick2.weight [i] <- chick2.measures$weight
         }else{
           ids.final1$chick2.capdate[i] <- as.character(chick2.measures$real.date[2])
-          ids.final1$chick2.bill[i] <- chick2.measures$bill[2]
+          #ids.final1$chick2.bill[i] <- chick2.measures$bill[2]
           ids.final1$chick2.tarsus [i] <- ifelse(!is.na(chick2.measures$right_tarsus[2]), chick2.measures$right_tarsus[2], chick2.measures$left_tarsus[2])
           ids.final1$chick2.weight [i] <- chick2.measures$weight[2]
         }  
   } else {
   ids.final1$chick2.capdate[i] <- NA
-  ids.final1$chick2.bill[i] <- NA
+  #ids.final1$chick2.bill[i] <- NA
   ids.final1$chick2.tarsus [i] <- NA
   ids.final1$chick2.weight [i] <- NA
   }
@@ -1608,13 +1632,13 @@ for(i in 1:length(ids.final1$year)){
   #if(!is.na(chicks.ids$chick3) & nchar(chicks.ids$chick3)==6){
   #Ceuta:
   if(!is.na(chicks.ids$chick3)){
-    ind<-which(chicks.ids.year$year.chick3 == cap$year.ring)
-    chicks.cap<-cap[ind,]
+    ind<-which(chicks.ids.year$year.chick3 == cap.o$year.ring)
+    chicks.cap<-cap.o[ind,]
     if(population %in% "MAIO" & any(ids.final1$nest.id[i]!=chicks.cap$nest.id) & length(unique(chicks.cap$nest.id))!=1){
       ind3<-which(ids.final1$nest.id[i]==chicks.cap$nest.id)
       chicks.cap<-chicks.cap[ind3,]
     }else{
-      chicks.cap<-cap[ind,]
+      chicks.cap<-cap.o[ind,]
     }
   
     #Ceuta and Maio:
@@ -1623,19 +1647,19 @@ for(i in 1:length(ids.final1$year)){
   chick3.measures <- chick3.measures[chick3.measures$date == min(chick3.measures$date),]
     if(length(chick3.measures$year)==1){
       ids.final1$chick3.capdate[i] <- as.character(chick3.measures$real.date)
-      ids.final1$chick3.bill[i] <- chick3.measures$bill
+      #ids.final1$chick3.bill[i] <- chick3.measures$bill
       ids.final1$chick3.tarsus [i] <- ifelse(!is.na(chick3.measures$right_tarsus), chick3.measures$right_tarsus, chick3.measures$left_tarsus)
       ids.final1$chick3.weight [i] <- chick3.measures$weight
     }else{
       ids.final1$chick3.capdate[i] <- as.character(chick3.measures$real.date[3])
-      ids.final1$chick3.bill[i] <- chick3.measures$bill[3]
+      #ids.final1$chick3.bill[i] <- chick3.measures$bill[3]
       ids.final1$chick3.tarsus [i] <- ifelse(!is.na(chick3.measures$right_tarsus[3]), chick3.measures$right_tarsus[3], chick3.measures$left_tarsus[3])
       ids.final1$chick3.weight [i] <- chick3.measures$weight[3]
     } 
   
   } else {
   ids.final1$chick3.capdate[i] <- NA
-  ids.final1$chick3.bill[i] <- NA
+  #ids.final1$chick3.bill[i] <- NA
   ids.final1$chick3.tarsus [i] <- NA
   ids.final1$chick3.weight [i] <- NA
   }
@@ -1649,6 +1673,7 @@ tail(ids.final1)
 ind<-sample(rownames(ids.final1),5)
 ids.final1[ind,] #MAIO: checked complete info of 5 at random and seems ok 26/01/2016
                 #Ceuta: checked complete info of 5 at random and seems ok 12/02/2016
+                #Tuzla: checked chick infor of 5 at random and seems ok 13/04/2016
 ids.final1[!is.na(ids.final1$chick1),]
 ids.final1[4,]
 
@@ -1675,57 +1700,57 @@ cap[cap$nest.id %in% "2009-S-201",]
 #198 second run after debugging: CA3461 has two captures on the same day. Omit second capture (line 651)
 
 #---------------------------------------
-#MAIO DEBUG 16/02/2016 for loop chicks (changes made), errors on iterations:
-# [1] 245
-# [1] "nest.id mis-matches captures nest.id"
-# [1] 246
-# [1] 418
-# Warning in min(chick2.measures$date) :
-#   no non-missing arguments to min; returning Inf
-# [1] 419
-# [1] 558
-# [1] "nest.id mis-matches captures nest.id"
-# [1] 559
-# [1] 776
-# [1] "nest.id mis-matches captures nest.id"
-# [1] 777
-# [1] 797
-# [1] "nest.id mis-matches captures nest.id"
-# [1] 798
-# [1] 939
-# Warning in min(chick1.measures$date) :
-#   no non-missing arguments to min; returning Inf
-# [1] 940
-# [1] 989
-# Warning in min(chick2.measures$date) :
-#   no non-missing arguments to min; returning Inf
-# [1] 990
-# [1] 45
-# [1] "nest.id mis-matches captures nest.id"
-# [1] 46
-
-ids.final1[418,] #case 418, chick2 has XX.XX|XX.XX -> Inf is correct
-
-ids.final1[939,] #chick1 is XX.XX|XX.XX...so min(chick1.measures$date) is Inf
-ids.final1[989,] #chick2 has XX.XX|XX.XX -> Inf is correct
-
-ids.final1[245,]
-cap[cap$year.ring %in% "2012-LX.XX|GX.XX",] #two chicks with same ring in two different nests
-
-ids.final1[558,] #same as 45
-cap[cap$year.ring %in% "2008-CA1192",]#std_notes says: recapture, (this ring or nest number is wrong, original notes need to be checked CCI 14/05/2015)
-#tarsus length and measurements are from first capture which is fine ,/
-
-ids.final1[776,] #same as 245
-cap[cap$year.ring %in% "2012-LX.XX|GX.XX",]
-
-ids.final1[797,] #same as 245
-cap[cap$year.ring %in% "2012-LX.XX|GX.XX",]
-
-ids.final1[45,] #same as 558
-cap[cap$year.ring %in% "2008-CA1192",]#std_notes says: recapture, (this ring or nest number is wrong, original notes need to be checked CCI 14/05/2015)
-#tarsus length and measurements are from first capture which is fine ,/
-#fixed code 17/02/2016
+# #MAIO DEBUG 16/02/2016 for loop chicks (changes made), errors on iterations:
+# # [1] 245
+# # [1] "nest.id mis-matches captures nest.id"
+# # [1] 246
+# # [1] 418
+# # Warning in min(chick2.measures$date) :
+# #   no non-missing arguments to min; returning Inf
+# # [1] 419
+# # [1] 558
+# # [1] "nest.id mis-matches captures nest.id"
+# # [1] 559
+# # [1] 776
+# # [1] "nest.id mis-matches captures nest.id"
+# # [1] 777
+# # [1] 797
+# # [1] "nest.id mis-matches captures nest.id"
+# # [1] 798
+# # [1] 939
+# # Warning in min(chick1.measures$date) :
+# #   no non-missing arguments to min; returning Inf
+# # [1] 940
+# # [1] 989
+# # Warning in min(chick2.measures$date) :
+# #   no non-missing arguments to min; returning Inf
+# # [1] 990
+# # [1] 45
+# # [1] "nest.id mis-matches captures nest.id"
+# # [1] 46
+# 
+# ids.final1[418,] #case 418, chick2 has XX.XX|XX.XX -> Inf is correct
+# 
+# ids.final1[939,] #chick1 is XX.XX|XX.XX...so min(chick1.measures$date) is Inf
+# ids.final1[989,] #chick2 has XX.XX|XX.XX -> Inf is correct
+# 
+# ids.final1[245,]
+# cap[cap$year.ring %in% "2012-LX.XX|GX.XX",] #two chicks with same ring in two different nests
+# 
+# ids.final1[558,] #same as 45
+# cap[cap$year.ring %in% "2008-CA1192",]#std_notes says: recapture, (this ring or nest number is wrong, original notes need to be checked CCI 14/05/2015)
+# #tarsus length and measurements are from first capture which is fine ,/
+# 
+# ids.final1[776,] #same as 245
+# cap[cap$year.ring %in% "2012-LX.XX|GX.XX",]
+# 
+# ids.final1[797,] #same as 245
+# cap[cap$year.ring %in% "2012-LX.XX|GX.XX",]
+# 
+# ids.final1[45,] #same as 558
+# cap[cap$year.ring %in% "2008-CA1192",]#std_notes says: recapture, (this ring or nest number is wrong, original notes need to be checked CCI 14/05/2015)
+# #tarsus length and measurements are from first capture which is fine ,/
+# #fixed code 17/02/2016
 
 #---------27/01/2016
 #b. Calculate oldest chick's age with size, oldest chick is not necessarily chick1
@@ -1737,9 +1762,9 @@ names(ids.final2)
 str(ids.final1)
 
 #MAIO:
-head(rowSums(ids.final2[,c(65,69,73)], na.rm=T))
+#head(rowSums(ids.final2[,c(65,69,73)], na.rm=T))
 #Ceuta:head(rowSums(ids.final2[,c(67,71,75)], na.rm=T))
-
+head(rowSums(ids.final2[,c(69,73,77)], na.rm=T))
 # i) extract largest chick.tarsus and capture date
 ids.final2$largest.chick.tarsus <- ifelse(rowSums(ids.final2[,c("chick1.tarsus","chick2.tarsus","chick3.tarsus")], na.rm=T)>0,
                                           apply(ids.final2[,c("chick1.tarsus","chick2.tarsus","chick3.tarsus")],
@@ -1778,11 +1803,13 @@ for(i in 1:length(ids.final2$year)){
 #see formula and Table 2 in (http://onlinelibrary.wiley.com/doi/10.1111/ibi.12263/full)
 
 #MAIO formula: 
-ids.final2$largest.chick.age <- (ids.final2$largest.chick.tarsus-19.16)/0.45
+#ids.final2$largest.chick.age <- (ids.final2$largest.chick.tarsus-19.16)/0.45
 
 #Ceuta formula:
 #ids.final2$largest.chick.age <- (ids.final2$largest.chick.tarsus-17.607)/0.309
 
+#Tuzla formula:
+ids.final2$largest.chick.age <- (ids.final2$largest.chick.tarsus-19.058)/0.411
 #------------debug 2-------------
 #(i)
 names(ids.final2)
@@ -1906,36 +1933,42 @@ str(ids.final[55,c("first.res", "last.res","first.cap.r","last.cap.r","first.bf.
 #------------------------
 
 #----If first is = LD or < LD-10 consider using LD-10?----
-str(ids.final) #MAIO: 1083 obs #CEUTA: 1031 obs
+str(ids.final) #MAIO: 1083 obs #CEUTA: 1031 obs, #Tuzla: 1506 obs
 
-ids.final$layingdate <- as.Date(ids.final$layingdate, "%Y-%m-%d" )
+ids.final$laying_date.r <- as.Date(ids.final$laying_date.r, "%Y-%m-%d" )
 
 ind<- which(ids.final$first.d.seen < ids.final$laying_date.r)
 ind<- which(ids.final$first.d.seen < ids.final$layingdate)
 str(ids.final[ind,]) #MAIO: 207 or 283 using est.ld cases where individuals were seen before their laying date
                     #CEUTA: 364 cases where individuals were seen before their laying date
+                    #Tuzla: 307 cases where individuals were seen before their laying date
 
 ind<- which(ids.final$first.d.seen < (ids.final$laying_date.r-10))
 str(ids.final[ind,]) #CEUTA: 326 cases
                       #MAIO: 146 cases
+                      #Tuzla: 250 cases
 
 ind2<- which(ids.final$first.d.seen > ids.final$laying_date.r)
 str(ids.final[ind2,]) #MAIO: 473 cases where laying date is previous to any other sighting
                       #CEUTA: 617 cases 
+                      #Tuzla 952
 x <- ids.final[ind2,]
 
 #MAIO:
 #from those where laying date is previous to any other sighting, is found date after laying date?
  ind3<-which(x$found_date.r < x$laying_date.r)  #MAIO: 49 cases where laying date is after found date
  str(x[ind3,])                                  #CEUTA: 107 cases
+                                               #Tuzla: 138 cases
  x1<-x[ind3,]
 #from these 49 cases, how many days before LD is founddate?
 a<-as.Date(x1$laying_date.r) - as.Date(x1$found_date.r)
 table(a)  #MAIO: 1-6 days before LD
           #CEUTA: 1-7 days before LD
+          #Tuzla: 1-7 days before LD
 # 
  ind4<-which(x$found_date.r>x$laying_date.r)  #MAIO: 411 cases where laying date is before found date
  str(x[ind4,]) #-1--25 days after LD          #CEUTA: 485 cases
+                                              #TUzla: 724 cases
 
 ind3<-which(ids.final$found_date.r< ids.final$laying_date.r)
 ids.final[ind3, c("found_date.r","laying_date.r")]
@@ -1954,31 +1987,31 @@ ids.final[ind3, c("found_date.r","laying_date.r")]
 #ADD mol_sex to Ceuta data (From captures file cleaned by Luke with mol.sex)
 #using cap.1 containing only Adults
 
-for (i in 1:length(ids.final$year)){
-  ids.final$mol_sex_focal[i] <- cap.1$sex[match(ids.final$ring[i], cap.1$ring)]
-  ids.final$mol_sex_mate[i] <- cap.1$sex[match(ids.final$mate_ring[i], cap.1$ring)]
-}
+# for (i in 1:length(ids.final$year)){
+#   ids.final$mol_sex_focal[i] <- cap.1$sex[match(ids.final$ring[i], cap.1$ring)]
+#   ids.final$mol_sex_mate[i] <- cap.1$sex[match(ids.final$mate_ring[i], cap.1$ring)]
+# }
 
 #-------------------non matching sexes? field-mol------------
-
-ids.final[ids.final$mol_sex_focal != ids.final$field_sex_focal & !is.na(ids.final$year), c("nest.id","field_sex_focal","field_sex_mate","mol_sex_focal","mol_sex_mate")]
-unique(ids.final[ids.final$mol_sex_focal != ids.final$field_sex_focal & !is.na(ids.final$year), "nest.id"])
-
-ids.final[is.na(ids.final$mol_sex_focal), c("nest.id","field_sex_focal","field_sex_mate","mol_sex_focal","mol_sex_mate")]
-
-#---------debug------
-ids.final[ids.final$nest.id %in% "2006-C-38",]
-ids.final[ids.final$code %in% "BX.WX|BX.OX",]
-cap[cap$code %in% "BX.WX|BX.OX",] #adult found with X in age when it should be A....correct
-
-cap[cap$age %in% "X",]
-table(cap$age)
+# #this section is irrelevant for Tuzla as no mol sex are available
+# ids.final[ids.final$mol_sex_focal != ids.final$field_sex_focal & !is.na(ids.final$year), c("nest.id","field_sex_focal","field_sex_mate","mol_sex_focal","mol_sex_mate")]
+# unique(ids.final[ids.final$mol_sex_focal != ids.final$field_sex_focal & !is.na(ids.final$year), "nest.id"])
+# 
+# ids.final[is.na(ids.final$mol_sex_focal), c("nest.id","field_sex_focal","field_sex_mate","mol_sex_focal","mol_sex_mate")]
+# 
+# #---------debug------
+# ids.final[ids.final$nest.id %in% "2006-C-38",]
+# ids.final[ids.final$code %in% "BX.WX|BX.OX",]
+# cap[cap$code %in% "BX.WX|BX.OX",] #adult found with X in age when it should be A....correct
+# 
+# cap[cap$age %in% "X",]
+# table(cap$age)
 #----------------------------------
 #choose variables to keep to save csv file:
 names(ids.final)
 #unique(ids.final3$fate)
 #only omit working variables like year.ring, year.chick1, etc.
-to.write<-ids.final[,c(1:20,22,23,27:28,32:39,43,44,51:59,63:84)]
+to.write<-ids.final[,c(1:28,30:63,67:88)]
 #to.write<-ids.final3[,c(1:23,49,25:31)]
 
 
@@ -1998,10 +2031,14 @@ to.write<-ids.final[,c(1:20,22,23,27:28,32:39,43,44,51:59,63:84)]
 #-----------------------------------------------
 #-----------------------------------------------
 #------------Write file with data (excluding laying dates for negative broods)---------------
-setwd("F:/Plovers/3rd Chapter/output/Maio")
-write.csv(to.write, "Maio_breeding_schedule_data_2007-2015_17Feb2016.csv")
+# setwd("F:/Plovers/3rd Chapter/output/Maio")
+# write.csv(to.write, "Maio_breeding_schedule_data_2007-2015_17Feb2016.csv")
+# 
+# setwd("F:/Plovers/3rd Chapter/output/Ceuta")
+# write.csv(to.write, "Ceuta_breeding_schedule_data_2007-2012_full dataset_12Feb2016with_molsex.csv")
 
-setwd("F:/Plovers/3rd Chapter/output/Ceuta")
-write.csv(to.write, "Ceuta_breeding_schedule_data_2007-2012_full dataset_12Feb2016with_molsex.csv")
+setwd("F:/Plovers/3rd Chapter/output/Tuzla")
+write.csv(to.write, "Tuzla_breeding_schedule_data_1996-2004_14April2016.csv")
+
 #-----------------------------------------------
 #-----------------------------------------------
